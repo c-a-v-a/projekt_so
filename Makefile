@@ -7,7 +7,7 @@ OBJDIR=./obj
 BINDIR=./bin
 SRCDIR=./src
 
-_OBJ_MAIN=main.o
+_OBJ_MAIN=main.o argparser.o
 OBJ_MAIN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_MAIN))
 _OBJ_STUDENT=student.o
 OBJ_STUDENT=$(patsubst %,$(OBJDIR)/%,$(_OBJ_STUDENT))
@@ -42,6 +42,7 @@ board: $(OBJ_BOARD)
 
 format:
 	$(FMT) --style=google -i $(SRCDIR)/**/*.c
+	$(FMT) --style=google -i $(SRCDIR)/*.h
 
 setup:
 	[ -d $(BINDIR) ] || mkdir $(BINDIR)

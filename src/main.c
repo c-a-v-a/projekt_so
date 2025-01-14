@@ -6,12 +6,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int main() {
+#include "argparser.h"
+
+int main(int argc, char** argv) {
   printf("Main\n");
 
-  dean_runner();
-  board_runner();
-  students_runner();
+  struct MainArgs args = argparse_main(argc, argv);
+
+  if (args.ns != NULL) {
+    free(args.ns);
+  }
 
   return 0;
 }
