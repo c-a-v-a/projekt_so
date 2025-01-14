@@ -41,7 +41,7 @@ board: $(OBJ_BOARD)
 	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS)
 
 format:
-	$(FMT) --style=google -i src/**/*.c
+	$(FMT) --style=google -i $(SRCDIR)/**/*.c
 
 setup:
 	[ -d $(BINDIR) ] || mkdir $(BINDIR)
