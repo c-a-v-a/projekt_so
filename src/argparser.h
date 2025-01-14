@@ -6,10 +6,11 @@
 
 #include <sys/types.h>
 
-// Structure that `main` program's arguments will be parsed to. All of the
-// fields of the struct are optional (they may be NULL). If the fields happen
-// to be NULL, then the `defaults` module should be used to fill in the empty
-// field.
+// Structure that `main` program's arguments will be parsed to.
+// Value -1 for `k` and `ns_length` as well as NULL for `ns` signify, that
+// those values were not passed as a argument to the program and they should be
+// replaced by default constants (in case of k), or generated randomly (in case
+// of ns) using `defualts` module.
 struct MainArgs {
   int k;
   int* ns;
