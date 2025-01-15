@@ -1,13 +1,13 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic
-PROD_CFLAGS=-O2
+CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV
+PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic
 FMT=clang-format
 
 OBJDIR=./obj
 BINDIR=./bin
 SRCDIR=./src
 
-_OBJ_MAIN=main.o argparser.o
+_OBJ_MAIN=main.o argparser.o defaults.o
 OBJ_MAIN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_MAIN))
 _OBJ_STUDENT=student.o
 OBJ_STUDENT=$(patsubst %,$(OBJDIR)/%,$(_OBJ_STUDENT))
@@ -49,5 +49,5 @@ setup:
 	[ -d $(OBJDIR) ] || mkdir $(OBJDIR)
 
 clean:
-	[ -d $(BINDIR) ] && rm $(BINDIR)/*
 	[ -d $(OBJDIR) ] && rm $(OBJDIR)/*
+	[ -d $(BINDIR) ] && rm $(BINDIR)/*

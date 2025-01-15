@@ -4,6 +4,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <sys/types.h>
+
 int main(int argc, char** argv);
 
 // Collection of functions that are responsible for creating new processes
@@ -11,7 +13,7 @@ int main(int argc, char** argv);
 // processes are spawned differently (eg. different amount or different
 // arguments that need to be passed to spawned program).
 void dean_runner();
-void board_runner();
-void students_runner();
+void board_runner(char* boards, size_t boards_length);
+void students_runner(int k, int* ns);
 
 #endif

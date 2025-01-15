@@ -4,14 +4,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "argparser.h"
+#include "defaults.h"
 
 int main(int argc, char** argv) {
   printf("Main\n");
 
+  srand(time(NULL));
+
   struct MainArgs args = argparse_main(argc, argv);
+
+  // TODO: Add param validation
+
+  if (args.k == -1) {
+    args.k = DEFAULT_K;
+  }
+
+  if (args.ns_len == -1 && args.ns == NULL) {
+    args.ns_len = args.k;
+    args.ns = generate_random_ns(args.ns_len, MIN_N_RANGE, MAX_N_RANGE);
+  }
+
+  printf("PARAMS:\n");
+  printf("K: %d\n", args.k);
+  printf("Ns: ");
+  for (int i = 0; i < args.ns_len; i++) {
+    printf("%d ", args.ns[i]);
+  }
+  printf("\n");
 
   if (args.ns != NULL) {
     free(args.ns);
@@ -34,12 +57,7 @@ void dean_runner() {
 	}
 }
 
-void board_runner() {
-  // TODO: Add passing args to runner
-  // TODO: Move this to global config headers
-  const char boards[] = { 'A', 'B' };
-  const int boards_length = 2;
-
+void board_runner(char* boards, size_t boards_length) {
   for (int i = 0; i < boards_length; i++) {
     const pid_t pid = fork();
 
@@ -55,16 +73,11 @@ void board_runner() {
   }
 }
 
-void students_runner() {
-  // TODO: Add passing args to runner
-  // TODO: Random or argv K and N
-  const int K = 2;
-  const int Ns[] = { 5, 3 };
+void students_runner(int k, int* ns) {
+  for (int i = 0; i < k; i++) {
+    const int n = ns[i];
 
-  for (int i = 0; i < K; i++) {
-    const int N = Ns[i];
-
-    for (int j = 0; j < N; j++) {
+    for (int j = 0; j < n; j++) {
       const pid_t pid = fork();
 
       if (pid == -1) {

@@ -10,7 +10,7 @@
 // Value -1 for `k` and `ns_length` as well as NULL for `ns` signify, that
 // those values were not passed as a argument to the program and they should be
 // replaced by default constants (in case of k), or generated randomly (in case
-// of ns) using `defualts` module.
+// of ns) using `defaults` module.
 struct MainArgs {
   int k;
   int* ns;
