@@ -9,11 +9,11 @@ SRCDIR=./src
 
 _OBJ_MAIN=main.o argparser.o defaults.o
 OBJ_MAIN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_MAIN))
-_OBJ_STUDENT=student.o
+_OBJ_STUDENT=student.o argparser.o
 OBJ_STUDENT=$(patsubst %,$(OBJDIR)/%,$(_OBJ_STUDENT))
-_OBJ_DEAN=dean.o
+_OBJ_DEAN=dean.o argparser.o
 OBJ_DEAN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_DEAN))
-_OBJ_BOARD=board.o
+_OBJ_BOARD=board.o argparser.o
 OBJ_BOARD=$(patsubst %,$(OBJDIR)/%,$(_OBJ_BOARD))
 
 all: main student dean board
@@ -26,7 +26,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/**/%.c
 
 main: $(OBJ_MAIN)
 	make setup
-	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS)
+	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS) -lm
 
 student: $(OBJ_STUDENT)
 	make setup

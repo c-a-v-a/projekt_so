@@ -12,8 +12,11 @@ int main(int argc, char** argv);
 // and executing given programs (dean, board and student), since all those
 // processes are spawned differently (eg. different amount or different
 // arguments that need to be passed to spawned program).
-void dean_runner();
-void board_runner(char* boards, size_t boards_length);
+void dean_runner(char* k);
+void board_runner(char* ns);
 void students_runner(int k, int* ns);
+
+char* int_to_str(int x);
+char* int_arr_to_str(int* xs, size_t n);
 
 #endif
