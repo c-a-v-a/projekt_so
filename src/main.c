@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "argparser.h"
+#include "argprinter.h"
 #include "defaults.h"
 #include "str_creator.h"
 
@@ -33,15 +34,7 @@ int main(int argc, char** argv) {
 
   if (args.ns == NULL) { return EXIT_FAILURE; }
 
-  // TODO: Move param printer
-  printf("PARAMS:\n");
-  printf("K: %d\n", args.k);
-  printf("Ns: ");
-  for (int i = 0; i < args.ns_len; i++) {
-    printf("%d ", args.ns[i]);
-  }
-  printf("\n");
-
+  print_main_args(&args);
 
   if(!dean_runner(args.k)) {
     free(args.ns);
