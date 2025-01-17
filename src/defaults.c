@@ -8,9 +8,8 @@ int* generate_random_ns(int k, int min, int max) {
   int* ns = malloc(k * sizeof(int));
 
   if (ns == NULL) {
-    errno = ENOMEM;
     perror("Generating Ns values");
-    exit(1);
+    return ns;
   }
   
   for (int i = 0; i < k; i++) {

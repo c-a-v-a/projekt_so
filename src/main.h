@@ -4,16 +4,17 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <stdbool.h>
 #include <sys/types.h>
 
 int main(int argc, char** argv);
 
 // Collection of functions that are responsible for creating new processes
-// and executing given programs (dean, board and student), since all those
-// processes are spawned differently (eg. different amount or different
-// arguments that need to be passed to spawned program).
-void dean_runner(char* k);
-void board_runner(char* ns);
-void students_runner(int k, int* ns);
+// and executing given programs (dean, board and student). Arguments that
+// are passed to these functions directly relate to `MainArgs` structure
+// fields
+bool dean_runner(int k);
+bool board_runner(int* ns, ssize_t ns_len);
+bool students_runner(int k, int* ns);
 
 #endif

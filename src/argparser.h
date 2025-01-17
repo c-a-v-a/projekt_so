@@ -4,6 +4,7 @@
 #ifndef ARGPARSER_H
 #define ARGPARSER_H
 
+#include <stdbool.h>
 #include <sys/types.h>
 
 // Structure that `main` program's arguments will be parsed to. `k` signifies
@@ -44,9 +45,11 @@ struct BoardArgs {
   char board_name;
 };
 
-struct MainArgs argparse_main(int argc, char** argv);
-struct DeanArgs argparse_dean(int argc, char** argv);
-struct StudentArgs argparse_student(int argc, char** argv);
-struct BoardArgs argparse_board(int argc, char** argv);
+// TODO: Add default struct initializers
+
+bool argparse_main(int argc, char** argv, struct MainArgs* args);
+bool argparse_dean(int argc, char** argv, struct DeanArgs* args);
+bool argparse_student(int argc, char** argv, struct StudentArgs* args);
+bool argparse_board(int argc, char** argv, struct BoardArgs* args);
 
 #endif

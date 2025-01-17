@@ -6,14 +6,12 @@
 #include <string.h>
 #include <sys/types.h>
 
-struct MainArgs argparse_main(int argc, char** argv) {
-  struct MainArgs parsed = { -1, NULL, -1 };
-
+bool argparse_main(int argc, char** argv, struct MainArgs* args) {
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
     
     if (strcmp(flag, "-K") == 0) {
-      parsed.k = atoi(argv[++i]);
+      args->k = atoi(argv[++i]);
     } else if (strcmp(flag, "-Ns") == 0) {
       char* ns_string = argv[++i];
       int* ns = NULL;
@@ -25,66 +23,61 @@ struct MainArgs argparse_main(int argc, char** argv) {
         ns = realloc(ns, ns_len * sizeof(int));
 
         if (ns == NULL) {
-          errno = ENOMEM;
           perror("Parsing Main progam arguments");
-          exit(1);
+          return false;
         }
 
         ns[ns_len - 1] = atoi(token);
         token = strtok(NULL, ",");
       } while (token != NULL);
 
-      parsed.ns = ns;
-      parsed.ns_len = ns_len;
+      args->ns = ns;
+      args->ns_len = ns_len;
     } else {
       errno = EINVAL;
       perror("Parsing Main progam arguments");
-      exit(1);
+      return false;
     }
   }
 
-  return parsed;
+  return true;
 }
 
-struct DeanArgs argparse_dean(int argc, char** argv) {
-  struct DeanArgs parsed = { -1 };
-
+bool argparse_dean(int argc, char** argv, struct DeanArgs* args) {
   for (int i = 1; i < argc; i++) {
     const char* flag = argv[i];
+
     if (strcmp(flag, "-K") == 0) {
-      parsed.k = atoi(argv[++i]);
+      args->k = atoi(argv[++i]);
     } else {
       errno = EINVAL;
       perror("Parsing Dean progam arguments");
-      exit(1);
+      return false;
     }
   }
 
-  return parsed;
+  return true;
 }
 
-struct StudentArgs argparse_student(int argc, char** argv) {
-  struct StudentArgs parsed = { -1, -1 };
-
+bool argparse_student(int argc, char** argv, struct StudentArgs* args) {
   for (int i = 1; i < argc; i++) {
     const char* flag = argv[i];
+
     if (strcmp(flag, "-K") == 0) {
-      parsed.k = atoi(argv[++i]);
+      args->k = atoi(argv[++i]);
     } else if (strcmp(flag, "-N") == 0) {
-      parsed.n = atoi(argv[++i]);
+      args->n = atoi(argv[++i]);
     } else {
       errno = EINVAL;
       perror("Parsing Student progam arguments");
-      exit(1);
+      return false;
     }
   }
 
-  return parsed;
+  return true;
 }
 
-struct BoardArgs argparse_board(int argc, char** argv) {
-  struct BoardArgs parsed = { NULL, -1, '\0' };
-
+bool argparse_board(int argc, char** argv, struct BoardArgs* args) {
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
     
@@ -99,33 +92,32 @@ struct BoardArgs argparse_board(int argc, char** argv) {
         ns = realloc(ns, ns_len * sizeof(int));
 
         if (ns == NULL) {
-          errno = ENOMEM;
-          perror("Parsing Main progam arguments");
-          exit(1);
+          perror("Parsing Board progam arguments");
+          return false;
         }
 
         ns[ns_len - 1] = atoi(token);
         token = strtok(NULL, ",");
       } while (token != NULL);
 
-      parsed.ns = ns;
-      parsed.ns_len = ns_len;
+      args->ns = ns;
+      args->ns_len = ns_len;
     } else if (strcmp(flag, "-B") == 0) {
       char* board_string = argv[++i];
 
       if (strlen(board_string) == 1) {
-        parsed.board_name = board_string[0];
+        args->board_name = board_string[0];
       } else {
         errno = EINVAL;
-        perror("Parsing Main progam arguments");
-        exit(1);
+        perror("Parsing Board progam arguments");
+        return false;
       }
     } else {
       errno = EINVAL;
-      perror("Parsing Main progam arguments");
-      exit(1);
+      perror("Parsing Board progam arguments");
+      return false;
     }
   }
 
-  return parsed;
+  return true;
 }

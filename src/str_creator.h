@@ -3,9 +3,9 @@
 #ifndef STR_CREATOR_H
 #define STR_CREATOR_H
 
-#include <stddef.h>
+#include <sys/types.h>
 
 char* int_to_str(int x);
-char* int_arr_to_str(int* xs, size_t n);
+char* int_arr_to_str(int* xs, ssize_t n);
 
 #endif

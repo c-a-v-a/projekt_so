@@ -1,6 +1,7 @@
 #include "main.h"
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -12,14 +13,13 @@
 #include "str_creator.h"
 
 int main(int argc, char** argv) {
-  printf("Main\n");
-
   srand(time(NULL));
 
-  struct MainArgs args = argparse_main(argc, argv);
-
-  // TODO: Add param validation
-  // TODO: Add random time for process spawning
+  struct MainArgs args = { -1, NULL, -1 };
+  
+  if (!argparse_main(argc, argv, &args)) {
+    return EXIT_FAILURE;
+  }
 
   if (args.k == -1) {
     args.k = DEFAULT_K;
@@ -29,7 +29,11 @@ int main(int argc, char** argv) {
     args.ns_len = args.k;
     args.ns = generate_random_ns(args.ns_len, MIN_N_RANGE, MAX_N_RANGE);
   }
+  // TODO: Add param validation
 
+  if (args.ns == NULL) { return EXIT_FAILURE; }
+
+  // TODO: Move param printer
   printf("PARAMS:\n");
   printf("K: %d\n", args.k);
   printf("Ns: ");
@@ -38,70 +42,114 @@ int main(int argc, char** argv) {
   }
   printf("\n");
 
-  if (args.ns != NULL) {
+
+  if(!dean_runner(args.k)) {
     free(args.ns);
+    return EXIT_FAILURE;
+  }
+  
+  if(!board_runner(args.ns, args.ns_len)) {
+    free(args.ns);
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  if(!students_runner(args.k, args.ns)) {
+    free(args.ns);
+    return EXIT_FAILURE;
+  }
+
+  free(args.ns);
+
+  // TODO: Add ctr c handling
+  while (true) { sleep(10); }
+
+  return EXIT_SUCCESS;
 }
 
-void dean_runner(char* k) {
+// TODO: Add random time for process spawning
+bool dean_runner(int k) {
 	const pid_t pid = fork();
 
 	if (pid == -1) {
     perror("Creating Dean process");
-    exit(1);
+    return false;
 	} else if (pid == 0) {
-		if (execl("./bin/dean", "dean", "-K", k, NULL) == -1) {
+    char* k_str = int_to_str(k);
+    
+    if (k_str == NULL) {
+      perror("Creating arguments for Dean program");
+      exit(EXIT_FAILURE);
+    }
+
+		if (execl("./bin/dean", "dean", "-K", k_str, NULL) == -1) {
+      free(k_str);
 			perror("Executing Dean program");
-			exit(1);
+      exit(EXIT_FAILURE);
 		}
 	}
+
+  return true;
 }
 
-void board_runner(char* ns) {
+bool board_runner(int* ns, ssize_t ns_len) {
   for (size_t i = 0; i < BOARDS_LEN; i++) {
-    const char b[2] = { BOARDS[i], '\0' };
-
     const pid_t pid = fork();
-
-    sleep(rand() % 5);
 
     if (pid == -1) {
       perror("Creating Board process");
-      exit(1);
+      return false;
     } else if (pid == 0) {
-      if (execl("./bin/board", "board", "-B", b, "-Ns", ns, NULL) == -1) {
+      const char b[2] = { BOARDS[i], '\0' };
+      char* ns_str = int_arr_to_str(ns, ns_len);
+
+      if (ns_str == NULL) {
+        perror("Creating arguments for Board program");
+        exit(EXIT_FAILURE);
+      }
+
+      if (execl("./bin/board", "board", "-B", b, "-Ns", ns_str, NULL) == -1) {
+        free(ns_str);
         perror("Executing Board program");
-        exit(1);
+        exit(EXIT_FAILURE);
       }
     }
   }
+
+  return true;
 }
 
-void students_runner(int k, int* ns) {
+bool students_runner(int k, int* ns) {
   for (int i = 0; i < k; i++) {
     const int n = ns[i];
 
     for (int j = 1; j <= n; j++) {
-      char* k = int_to_str(i + 1);
-      char* n = int_to_str(j);
-
-      // TODO: check if k or n is null
-
       const pid_t pid = fork();
 
       if (pid == -1) {
         perror("Creating Student process");
-        exit(1);
+        return false;
       } else if (pid == 0) {
-        if (execl("./bin/student", "student", "-K", k, "-N", n, NULL) == -1) {
+        char* k_str = int_to_str(i + 1);
+        char* n_str = int_to_str(j);
+
+        if (k_str == NULL || n_str == NULL) {
+          if (k_str != NULL) { free(k_str); }
+          if (n_str != NULL) { free(n_str); }
+
+          exit(EXIT_FAILURE);
+        }
+
+        if (execl("./bin/student", "student", "-K", k_str, "-N", n_str, NULL) == -1) {
+          free(k_str);
+          free(n_str);
           perror("Executing Student program");
-          exit(1);
+          exit(EXIT_FAILURE);
         }
       }
     }
   }
+
+  return true;
 }
 
-// TODO: Change error handling everywhere
+// TODO: Add signal for detecting when execl or building arguments failed
