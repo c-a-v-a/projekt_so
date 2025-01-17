@@ -1,8 +1,8 @@
 // Module that provides quick functionality to print params generated from
 // `argparser` module.
 
-#ifndef ARGS_PRINTER_H
-#define ARGS_PRINTER_H
+#ifndef ARGPRINTER_H
+#define ARGPRINTER_H
 
 #include "argparser.h"
 

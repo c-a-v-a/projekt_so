@@ -10,6 +10,7 @@
 
 #include "argparser.h"
 #include "argprinter.h"
+#include "argvalidator.h"
 #include "defaults.h"
 #include "str_creator.h"
 
@@ -22,17 +23,12 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (args.k == -1) {
-    args.k = DEFAULT_K;
+  if (!validate_main_args(&args)) {
+    if (args.ns != NULL) { free(args.ns); }
+    errno = EINVAL;
+    perror("Error while parsing Main arguments");
+    return EXIT_FAILURE;
   }
-
-  if (args.ns_len == -1 && args.ns == NULL) {
-    args.ns_len = args.k;
-    args.ns = generate_random_ns(args.ns_len, MIN_N_RANGE, MAX_N_RANGE);
-  }
-  // TODO: Add param validation
-
-  if (args.ns == NULL) { return EXIT_FAILURE; }
 
   print_main_args(&args);
 

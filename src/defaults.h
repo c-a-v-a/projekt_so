@@ -24,14 +24,14 @@ static const int MAX_N_RANGE = 160;
 #endif
 
 static const char BOARDS[] = {'A', 'B'};
-static const size_t BOARDS_LEN = 2;
+static const ssize_t BOARDS_LEN = 2;
 
 // How many students can enter the board room at once, and wait for their
 // questions.
 static const int BOARD_MAX_STUDENTS = 3;
 
 static const float GRADES[] = {2.0, 3.0, 3.5, 4.0, 4.5, 5.0};
-static const size_t GRADES_LEN = 6;
+static const ssize_t GRADES_LEN = 6;
 
 // Distribution of probabilities for any given grade that student can get,
 // where 1 represents 1%, since grade is determined by a random number from
