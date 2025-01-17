@@ -45,11 +45,8 @@ struct BoardArgs {
 };
 
 struct MainArgs argparse_main(int argc, char** argv);
-
 struct DeanArgs argparse_dean(int argc, char** argv);
-
 struct StudentArgs argparse_student(int argc, char** argv);
-
 struct BoardArgs argparse_board(int argc, char** argv);
 
 #endif
