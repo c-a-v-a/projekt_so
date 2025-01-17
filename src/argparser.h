@@ -45,7 +45,12 @@ struct BoardArgs {
   char board_name;
 };
 
-// TODO: Add default struct initializers
+// Initializes struct with default values, so the values that represent
+// that given parameter wasn't parsed.
+struct MainArgs main_args_init();
+struct DeanArgs dean_args_init();
+struct StudentArgs student_args_init();
+struct BoardArgs board_args_init();
 
 bool argparse_main(int argc, char** argv, struct MainArgs* args);
 bool argparse_dean(int argc, char** argv, struct DeanArgs* args);

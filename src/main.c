@@ -15,7 +15,7 @@
 int main(int argc, char** argv) {
   srand(time(NULL));
 
-  struct MainArgs args = { -1, NULL, -1 };
+  struct MainArgs args = main_args_init();
   
   if (!argparse_main(argc, argv, &args)) {
     return EXIT_FAILURE;

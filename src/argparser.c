@@ -6,6 +6,22 @@
 #include <string.h>
 #include <sys/types.h>
 
+struct MainArgs main_args_init() {
+  return (struct MainArgs) { -1, NULL, -1 };
+}
+
+struct DeanArgs dean_args_init() {
+  return (struct DeanArgs) { -1 };
+}
+
+struct StudentArgs student_args_init() {
+  return (struct StudentArgs) { -1, -1 };
+}
+
+struct BoardArgs board_args_init() {
+  return (struct BoardArgs) { NULL, -1, '\0' };
+}
+
 bool argparse_main(int argc, char** argv, struct MainArgs* args) {
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
