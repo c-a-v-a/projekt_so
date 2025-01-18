@@ -8,12 +8,12 @@
 #include "../argprinter.h"
 #include "../argvalidator.h"
 
+volatile sig_atomic_t CLEANUP = 0;
+
 void signal_handler(int signal) {
-  if (signal == SIGUSR1) {
+  if (signal == SIGUSR1 && CLEANUP == 0) {
     printf("DEAN: SIGUSR1\n");
-    // TODO: Clean up
-    // EINTR errno?
-    exit(1);
+    CLEANUP = 1;
   }
 }
 
@@ -35,6 +35,9 @@ int main(int argc, char** argv) {
   print_dean_args(&args);
 
   while (1) {
-    sleep(10);
+    sleep(2);
+
+    // Clean up goes here
+    if (CLEANUP == 1) return EXIT_SUCCESS;
   }
 }

@@ -8,11 +8,12 @@
 #include "../argprinter.h"
 #include "../argvalidator.h"
 
+volatile sig_atomic_t CLEANUP = 0;
+
 void signal_handler(int signal) {
-  if (signal == SIGUSR1) {
+  if (signal == SIGUSR1 && CLEANUP == 0) {
     printf("BOARD: SIGUSR1\n");
-    // TODO: Clean up
-    exit(1);
+    CLEANUP = 1;
   }
 }
 
@@ -37,6 +38,11 @@ int main(int argc, char** argv) {
   print_board_args(&args);
 
   while (1) {
-    sleep(10);
+    sleep(2);
+
+    if (CLEANUP == 1) {
+      if (args.ns != NULL) free(args.ns);
+      return EXIT_SUCCESS;
+    }
   }
 }

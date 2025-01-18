@@ -22,11 +22,21 @@ int main(int argc, char** argv) {
   struct MainArgs args = main_args_init();
 
   srand(time(NULL));
-  setpgid(0, 0);  // Handle error
 
-  if (!handle_signal()) return EXIT_FAILURE;
+  if (setpgid(0, 0) == -1) {
+    perror("Unable to create a pid group");
+    return EXIT_FAILURE;
+  }
 
-  if (!argparse_main(argc, argv, &args)) return EXIT_FAILURE;
+  if (!handle_signal()) {
+    perror("Unable to register signal handler");
+    return EXIT_FAILURE;
+  }
+
+  if (!argparse_main(argc, argv, &args)) {
+    perror("Unable to parse Main arguments");
+    return EXIT_FAILURE;
+  }
 
   if (!validate_main_args(&args)) {
     if (args.ns != NULL) free(args.ns);
@@ -40,25 +50,29 @@ int main(int argc, char** argv) {
   print_main_args(&args);
 
   if (!dean_runner(args.k)) {
+    perror("Unable to run Dean program");
     free(args.ns);
+
     return EXIT_FAILURE;
   }
 
   if (!board_runner(args.ns, args.ns_len)) {
+    perror("Unable to run Board program");
     free(args.ns);
+
     return EXIT_FAILURE;
   }
 
   if (!students_runner(args.k, args.ns)) {
+    perror("Unable to run Student program");
     free(args.ns);
+
     return EXIT_FAILURE;
   }
 
   free(args.ns);
 
-  while (true) {
-    sleep(10);
-  }
+  while (true) sleep(10);
 
   return EXIT_SUCCESS;
 }
@@ -67,8 +81,6 @@ bool dean_runner(int k) {
   const pid_t pid = fork();
 
   if (pid == -1) {
-    perror("Creating Dean process");
-
     return false;
   } else if (pid == 0) {
     char* k_str = int_to_str(k);
@@ -102,8 +114,6 @@ bool board_runner(int* ns, ssize_t ns_len) {
     const pid_t pid = fork();
 
     if (pid == -1) {
-      perror("Creating Board process");
-
       return false;
     } else if (pid == 0) {
       const char b[2] = {BOARDS[i], '\0'};
@@ -142,8 +152,6 @@ bool students_runner(int k, int* ns) {
       const pid_t pid = fork();
 
       if (pid == -1) {
-        perror("Creating Student process");
-
         return false;
       } else if (pid == 0) {
         char* k_str = int_to_str(i + 1);
@@ -195,10 +203,7 @@ bool handle_signal() {
   sa.sa_flags = 0;
   sigemptyset(&sa.sa_mask);
 
-  if (sigaction(SIGUSR1, &sa, NULL) == -1) {
-    perror("Unable to register SIGINT handler");
-    return false;
-  }
+  if (sigaction(SIGUSR1, &sa, NULL) == -1) return false;
 
   return true;
 }

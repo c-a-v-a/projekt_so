@@ -32,11 +32,7 @@ bool argparse_main(int argc, char** argv, struct MainArgs* args) {
         ns_len++;
         ns = realloc(ns, ns_len * sizeof(int));
 
-        if (ns == NULL) {
-          perror("Parsing Main progam arguments");
-
-          return false;
-        }
+        if (ns == NULL) return false;
 
         ns[ns_len - 1] = atoi(token);
         token = strtok(NULL, ",");
@@ -46,7 +42,6 @@ bool argparse_main(int argc, char** argv, struct MainArgs* args) {
       args->ns_len = ns_len;
     } else {
       errno = EINVAL;
-      perror("Parsing Main progam arguments");
 
       return false;
     }
@@ -63,7 +58,6 @@ bool argparse_dean(int argc, char** argv, struct DeanArgs* args) {
       args->k = atoi(argv[++i]);
     } else {
       errno = EINVAL;
-      perror("Parsing Dean progam arguments");
 
       return false;
     }
@@ -82,7 +76,6 @@ bool argparse_student(int argc, char** argv, struct StudentArgs* args) {
       args->n = atoi(argv[++i]);
     } else {
       errno = EINVAL;
-      perror("Parsing Student progam arguments");
 
       return false;
     }
@@ -105,10 +98,7 @@ bool argparse_board(int argc, char** argv, struct BoardArgs* args) {
         ns_len++;
         ns = realloc(ns, ns_len * sizeof(int));
 
-        if (ns == NULL) {
-          perror("Parsing Board progam arguments");
-          return false;
-        }
+        if (ns == NULL) return false;
 
         ns[ns_len - 1] = atoi(token);
         token = strtok(NULL, ",");
@@ -123,13 +113,11 @@ bool argparse_board(int argc, char** argv, struct BoardArgs* args) {
         args->board_name = board_string[0];
       } else {
         errno = EINVAL;
-        perror("Parsing Board progam arguments");
 
         return false;
       }
     } else {
       errno = EINVAL;
-      perror("Parsing Board progam arguments");
 
       return false;
     }
