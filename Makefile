@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV
+CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE
 PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic
 FMT=clang-format
 

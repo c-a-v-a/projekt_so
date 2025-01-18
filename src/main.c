@@ -1,6 +1,7 @@
 #include "main.h"
 
 #include <errno.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,8 +16,20 @@
 #include "defaults.h"
 #include "str_creator.h"
 
+volatile sig_atomic_t SIGNALED = 0;
+
 int main(int argc, char** argv) {
   srand(time(NULL));
+  setpgid(0, 0); // Handle error
+
+  struct sigaction sa;
+  sa.sa_handler = signal_handler;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+  if (sigaction(SIGUSR1, &sa, NULL) == -1) {
+    perror("Unable to register SIGINT handler");
+    exit(1);
+  }
 
   struct MainArgs args = main_args_init();
   
@@ -50,8 +63,9 @@ int main(int argc, char** argv) {
 
   free(args.ns);
 
-  // TODO: Add ctr c handling
-  while (true) { sleep(10); }
+  while (true) {
+    sleep(10);
+  }
 
   return EXIT_SUCCESS;
 }
@@ -166,4 +180,13 @@ bool students_runner(int k, int* ns) {
   }
 
   return true;
+}
+
+// TODO: Change sleep to milliseconds sleep
+void signal_handler(int signal) {
+  if (signal == SIGUSR1 && SIGNALED == 0) {
+    SIGNALED = 1;
+    printf("MAIN: SIGUSR1\n");
+    kill(0, SIGUSR1);
+  }
 }
