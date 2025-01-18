@@ -11,10 +11,8 @@ int* generate_random_ns(int k, int min, int max) {
     perror("Generating Ns values");
     return ns;
   }
-  
-  for (int i = 0; i < k; i++) {
-    ns[i] = rand() % (max - min) + min;
-  }
+
+  for (int i = 0; i < k; i++) ns[i] = rand() % (max - min) + min;
 
   return ns;
 }

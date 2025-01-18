@@ -18,5 +18,6 @@ bool board_runner(int* ns, ssize_t ns_len);
 bool students_runner(int k, int* ns);
 
 void signal_handler(int signal);
+bool handle_signal();
 
 #endif

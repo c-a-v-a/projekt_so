@@ -6,26 +6,20 @@
 #include <string.h>
 #include <sys/types.h>
 
-struct MainArgs main_args_init() {
-  return (struct MainArgs) { -1, NULL, -1 };
-}
+struct MainArgs main_args_init() { return (struct MainArgs){-1, NULL, -1}; }
 
-struct DeanArgs dean_args_init() {
-  return (struct DeanArgs) { -1 };
-}
+struct DeanArgs dean_args_init() { return (struct DeanArgs){-1}; }
 
-struct StudentArgs student_args_init() {
-  return (struct StudentArgs) { -1, -1 };
-}
+struct StudentArgs student_args_init() { return (struct StudentArgs){-1, -1}; }
 
 struct BoardArgs board_args_init() {
-  return (struct BoardArgs) { NULL, -1, '\0' };
+  return (struct BoardArgs){NULL, -1, '\0'};
 }
 
 bool argparse_main(int argc, char** argv, struct MainArgs* args) {
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
-    
+
     if (strcmp(flag, "-K") == 0) {
       args->k = atoi(argv[++i]);
     } else if (strcmp(flag, "-Ns") == 0) {
@@ -40,6 +34,7 @@ bool argparse_main(int argc, char** argv, struct MainArgs* args) {
 
         if (ns == NULL) {
           perror("Parsing Main progam arguments");
+
           return false;
         }
 
@@ -52,6 +47,7 @@ bool argparse_main(int argc, char** argv, struct MainArgs* args) {
     } else {
       errno = EINVAL;
       perror("Parsing Main progam arguments");
+
       return false;
     }
   }
@@ -68,6 +64,7 @@ bool argparse_dean(int argc, char** argv, struct DeanArgs* args) {
     } else {
       errno = EINVAL;
       perror("Parsing Dean progam arguments");
+
       return false;
     }
   }
@@ -86,6 +83,7 @@ bool argparse_student(int argc, char** argv, struct StudentArgs* args) {
     } else {
       errno = EINVAL;
       perror("Parsing Student progam arguments");
+
       return false;
     }
   }
@@ -96,7 +94,7 @@ bool argparse_student(int argc, char** argv, struct StudentArgs* args) {
 bool argparse_board(int argc, char** argv, struct BoardArgs* args) {
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
-    
+
     if (strcmp(flag, "-Ns") == 0) {
       char* ns_string = argv[++i];
       int* ns = NULL;
@@ -126,11 +124,13 @@ bool argparse_board(int argc, char** argv, struct BoardArgs* args) {
       } else {
         errno = EINVAL;
         perror("Parsing Board progam arguments");
+
         return false;
       }
     } else {
       errno = EINVAL;
       perror("Parsing Board progam arguments");
+
       return false;
     }
   }

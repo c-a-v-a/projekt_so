@@ -32,9 +32,7 @@ bool validate_main_args(struct MainArgs* args) {
   return args->k >= DEFAULT_K && args->ns_len == args->k && ns_test;
 }
 
-bool validate_dean_args(struct DeanArgs* args) {
-  return args->k >= DEFAULT_K;
-}
+bool validate_dean_args(struct DeanArgs* args) { return args->k >= DEFAULT_K; }
 
 bool validate_student_args(struct StudentArgs* args) {
   return !(args->k == -1 || args->n == -1);
