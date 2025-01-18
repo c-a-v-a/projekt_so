@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -55,14 +56,13 @@ int main(int argc, char** argv) {
   return EXIT_SUCCESS;
 }
 
-// TODO: Add random time for process spawning
 bool dean_runner(int k) {
-	const pid_t pid = fork();
+  const pid_t pid = fork();
 
-	if (pid == -1) {
+  if (pid == -1) {
     perror("Creating Dean process");
     return false;
-	} else if (pid == 0) {
+  } else if (pid == 0) {
     char* k_str = int_to_str(k);
     
     if (k_str == NULL) {
@@ -70,12 +70,21 @@ bool dean_runner(int k) {
       exit(EXIT_FAILURE);
     }
 
-		if (execl("./bin/dean", "dean", "-K", k_str, NULL) == -1) {
+    if (execl("./bin/dean", "dean", "-K", k_str, NULL) == -1) {
       free(k_str);
-			perror("Executing Dean program");
+      perror("Executing Dean program");
       exit(EXIT_FAILURE);
-		}
-	}
+    }
+  } else {
+    sleep(1);
+
+    int status;
+    pid_t result = waitpid(pid, &status, WNOHANG);
+
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+      return false;
+    }
+  }
 
   return true;
 }
@@ -100,6 +109,15 @@ bool board_runner(int* ns, ssize_t ns_len) {
         free(ns_str);
         perror("Executing Board program");
         exit(EXIT_FAILURE);
+      }
+    } else {
+      sleep(1);
+
+      int status;
+      pid_t result = waitpid(pid, &status, WNOHANG);
+
+      if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+        return false;
       }
     }
   }
@@ -134,11 +152,18 @@ bool students_runner(int k, int* ns) {
           perror("Executing Student program");
           exit(EXIT_FAILURE);
         }
+      } else {
+        sleep(1);
+
+        int status;
+        pid_t result = waitpid(pid, &status, WNOHANG);
+
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+          return false;
+        }
       }
     }
   }
 
   return true;
 }
-
-// TODO: Add signal for detecting when execl or building arguments failed
