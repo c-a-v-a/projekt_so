@@ -46,8 +46,8 @@ bool remove_all_semaphores() {
 
   if (semid == -1) return false;
 
-  result = result && semctl(semid, END_SEMAPHORE, IPC_RMID) == -1;
-  result = result && semctl(semid, DEAN_SEMAPHORE, IPC_RMID) == -1;
+  result = result && semctl(semid, END_SEMAPHORE, IPC_RMID) != -1;
+  result = result && semctl(semid, DEAN_SEMAPHORE, IPC_RMID) != -1;
 
   if (remove(SEMAPHORE_SET) == -1) return false;
 

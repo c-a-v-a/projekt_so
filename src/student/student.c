@@ -2,12 +2,14 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/shm.h>
 #include <unistd.h>
 
 #include "../argparser.h"
 #include "../argprinter.h"
 #include "../argvalidator.h"
 #include "../my_semaphores.h"
+#include "../my_shm.h"
 
 volatile sig_atomic_t CLEANUP = 0;
 
@@ -36,9 +38,11 @@ int main(int argc, char** argv) {
   print_student_args(&args);
 
   int semid = get_semid();
+  int shmid = get_dean_shmid();
+  int* shm_ptr = shmat(shmid, NULL, 0);
 
   sem_wait(semid, DEAN_SEMAPHORE);
-  printf("MESSAGE RECIEVED %d %d\n", args.k, args.n);
+  printf("MESSAGE RECIEVED (%d) %d %d\n", *shm_ptr, args.k, args.n);
   sem_post(semid, DEAN_SEMAPHORE);
 
   while (1) {

@@ -15,6 +15,7 @@
 #include "argvalidator.h"
 #include "defaults.h"
 #include "my_semaphores.h"
+#include "my_shm.h"
 #include "str_creator.h"
 
 // TODO: print to log file and not to stdout
@@ -58,9 +59,16 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  if (!create_all_shm()) {
+    perror("Unable to create shared memory blocks");
+
+    return EXIT_FAILURE;
+  }
+
   if (!dean_runner(args.k)) {
     perror("Unable to run Dean program");
     remove_all_semaphores();
+    remove_all_shm();
     free(args.ns);
 
     return EXIT_FAILURE;
@@ -69,6 +77,7 @@ int main(int argc, char** argv) {
   if (!board_runner(args.ns, args.ns_len)) {
     perror("Unable to run Board program");
     remove_all_semaphores();
+    remove_all_shm();
     free(args.ns);
 
     return EXIT_FAILURE;
@@ -77,6 +86,7 @@ int main(int argc, char** argv) {
   if (!students_runner(args.k, args.ns, args.t)) {
     perror("Unable to run Student program");
     remove_all_semaphores();
+    remove_all_shm();
     free(args.ns);
 
     return EXIT_FAILURE;
@@ -88,6 +98,12 @@ int main(int argc, char** argv) {
 
   if (!remove_all_semaphores()) {
     perror("Unable to remove semaphores");
+
+    return EXIT_FAILURE;
+  }
+
+  if (!remove_all_shm()) {
+    perror("Unable to remove shared memory blocks");
 
     return EXIT_FAILURE;
   }
