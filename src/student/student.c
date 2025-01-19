@@ -7,6 +7,7 @@
 #include "../argparser.h"
 #include "../argprinter.h"
 #include "../argvalidator.h"
+#include "../my_semaphores.h"
 
 volatile sig_atomic_t CLEANUP = 0;
 
@@ -33,6 +34,12 @@ int main(int argc, char** argv) {
   }
 
   print_student_args(&args);
+
+  int semid = get_semid();
+
+  sem_wait(semid, DEAN_SEMAPHORE);
+  printf("MESSAGE RECIEVED %d %d\n", args.k, args.n);
+  sem_post(semid, DEAN_SEMAPHORE);
 
   while (1) {
     sleep(2);

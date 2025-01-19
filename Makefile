@@ -7,13 +7,13 @@ OBJDIR=./obj
 BINDIR=./bin
 SRCDIR=./src
 
-_OBJ_MAIN=main.o argparser.o defaults.o str_creator.o argprinter.o argvalidator.o
+_OBJ_MAIN=main.o argparser.o defaults.o str_creator.o argprinter.o argvalidator.o my_semaphores.o
 OBJ_MAIN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_MAIN))
-_OBJ_STUDENT=student.o argparser.o argprinter.o argvalidator.o defaults.o
+_OBJ_STUDENT=student.o argparser.o argprinter.o argvalidator.o defaults.o my_semaphores.o
 OBJ_STUDENT=$(patsubst %,$(OBJDIR)/%,$(_OBJ_STUDENT))
-_OBJ_DEAN=dean.o argparser.o argprinter.o argvalidator.o defaults.o
+_OBJ_DEAN=dean.o argparser.o argprinter.o argvalidator.o defaults.o my_semaphores.o
 OBJ_DEAN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_DEAN))
-_OBJ_BOARD=board.o argparser.o argprinter.o argvalidator.o defaults.o
+_OBJ_BOARD=board.o argparser.o argprinter.o argvalidator.o defaults.o my_semaphores.o
 OBJ_BOARD=$(patsubst %,$(OBJDIR)/%,$(_OBJ_BOARD))
 
 all: main student dean board
