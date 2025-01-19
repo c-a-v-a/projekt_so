@@ -38,7 +38,7 @@ dean: $(OBJ_DEAN)
 
 board: $(OBJ_BOARD)
 	make setup
-	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS)
+	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS) -pthread
 
 format:
 	$(FMT) --style=google -i $(SRCDIR)/*.*
