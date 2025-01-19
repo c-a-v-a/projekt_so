@@ -10,12 +10,14 @@
 
 // Smaller numbers for testing purposes
 static const int DEFAULT_K = 2;
+static const int DEFAULT_T = 2;
 static const int MIN_N_RANGE = 8;
 static const int MAX_N_RANGE = 16;
 
 #else
 
 static const int DEFAULT_K = 5;
+static const int DEFAULT_T = 5;
 
 // Range for random generation of Ns parameters
 static const int MIN_N_RANGE = 80;

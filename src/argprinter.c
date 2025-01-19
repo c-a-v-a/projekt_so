@@ -7,7 +7,7 @@
 
 void print_main_args(struct MainArgs* args) {
   printf("MAIN\t");
-  printf("K:%d Ns: ", args->k);
+  printf("K:%d T:%d Ns: ", args->k, args->t);
 
   for (ssize_t i = 0; i < args->ns_len; i++) printf("%d ", args->ns[i]);
 
@@ -21,7 +21,7 @@ void print_dean_args(struct DeanArgs* args) {
 
 void print_student_args(struct StudentArgs* args) {
   printf("STUDENT\t");
-  printf("K:%d N:%d\n", args->k, args->n);
+  printf("K:%d N:%d T:%d\n", args->k, args->n, args->t);
 }
 
 void print_board_args(struct BoardArgs* args) {

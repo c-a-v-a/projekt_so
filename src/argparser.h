@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
+// TODO: Revise documentation
+
 // Structure that `main` program's arguments will be parsed to. `k` signifies
 // amount of fields of study in our university, and `ns` is an array of amount
 // of students on given field `k` (so ns[2] is amount of students in field
@@ -18,6 +20,7 @@ struct MainArgs {
   int k;
   int* ns;
   ssize_t ns_len;
+  int t;
 };
 
 // `k` is the number of all fields of study (the same as `k` in `MainArgs`).
@@ -34,6 +37,7 @@ struct DeanArgs {
 struct StudentArgs {
   int k;
   int n;
+  int t;
 };
 
 // `ns` is an array like in `MainArgs`, while `board_name` is the name of the

@@ -15,7 +15,7 @@ int main(int argc, char** argv);
 // fields
 bool dean_runner(int k);
 bool board_runner(int* ns, ssize_t ns_len);
-bool students_runner(int k, int* ns);
+bool students_runner(int k, int* ns, int t);
 
 void signal_handler(int signal);
 bool handle_signal();

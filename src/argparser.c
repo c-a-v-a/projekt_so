@@ -6,11 +6,13 @@
 #include <string.h>
 #include <sys/types.h>
 
-struct MainArgs main_args_init() { return (struct MainArgs){-1, NULL, -1}; }
+struct MainArgs main_args_init() { return (struct MainArgs){-1, NULL, -1, -1}; }
 
 struct DeanArgs dean_args_init() { return (struct DeanArgs){-1}; }
 
-struct StudentArgs student_args_init() { return (struct StudentArgs){-1, -1}; }
+struct StudentArgs student_args_init() {
+  return (struct StudentArgs){-1, -1, -1};
+}
 
 struct BoardArgs board_args_init() {
   return (struct BoardArgs){NULL, -1, '\0'};
@@ -22,6 +24,8 @@ bool argparse_main(int argc, char** argv, struct MainArgs* args) {
 
     if (strcmp(flag, "-K") == 0) {
       args->k = atoi(argv[++i]);
+    } else if (strcmp(flag, "-T") == 0) {
+      args->t = atoi(argv[++i]);
     } else if (strcmp(flag, "-Ns") == 0) {
       char* ns_string = argv[++i];
       int* ns = NULL;
@@ -72,6 +76,8 @@ bool argparse_student(int argc, char** argv, struct StudentArgs* args) {
 
     if (strcmp(flag, "-K") == 0) {
       args->k = atoi(argv[++i]);
+    } else if (strcmp(flag, "-T") == 0) {
+      args->t = atoi(argv[++i]);
     } else if (strcmp(flag, "-N") == 0) {
       args->n = atoi(argv[++i]);
     } else {
