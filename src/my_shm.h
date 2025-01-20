@@ -5,6 +5,7 @@
 #include <stddef.h>
 // TODO: Move permissions and PROJECT_ID to defaults or other file
 // TODO: Move semaphores and shared memory into sem and shm directories
+// TODO: add message queue for dean comunicate
 // TODO: Abbreviate semaphores and shared memory and whatever else needs to
 // be abbreviated
 
