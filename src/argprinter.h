@@ -4,13 +4,12 @@
 #ifndef ARGPRINTER_H
 #define ARGPRINTER_H
 
-#include "argparser.h"
+#include "cli_parser.h"
 
 // No error handling since it is way too rare for printf to fail and it's not
 // critical for the program.
-void print_main_args(struct MainArgs* args);
-void print_dean_args(struct DeanArgs* args);
-void print_student_args(struct StudentArgs* args);
-void print_board_args(struct BoardArgs* args);
+void print_dean_args(struct DeanArguments* args);
+void print_student_args(struct StudentArguments* args);
+void print_board_args(struct BoardArguments* args);
 
 #endif

@@ -10,20 +10,21 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "argparser.h"
+#include "cli_parser.h"
+
 #include "argprinter.h"
-#include "argvalidator.h"
 #include "defaults.h"
 #include "my_semaphores.h"
 #include "my_shm.h"
 #include "str_creator.h"
 
 // TODO: print to log file and not to stdout
+// TODO: take care of zombies
 
 volatile sig_atomic_t SIGNALED = 0;
 
 int main(int argc, char** argv) {
-  struct MainArgs args = main_args_init();
+  struct DeanArguments args = initial_dean();
 
   srand(time(NULL));
 
@@ -37,22 +38,26 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (!argparse_main(argc, argv, &args)) {
-    perror("Unable to parse Main arguments");
+  if (!parse_dean(argc, argv, &args)) {
+    perror("Unable to parse Dean arguments");
     return EXIT_FAILURE;
   }
 
-  if (!validate_main_args(&args)) {
+  if (!fill_dean(&args)) {
+    perror("Unable to parse Dean arguments");
+    return EXIT_FAILURE;
+  }
+
+  if (!validate_dean(args)) {
     if (args.ns != NULL) free(args.ns);
 
     errno = EINVAL;
-    perror("Error while parsing Main arguments");
+    perror("Invalid Dean arguments");
 
     return EXIT_FAILURE;
   }
 
-  print_main_args(&args);
-
+  /*
   if (!create_all_semaphores()) {
     perror("Unable to create semaphores");
 
@@ -107,6 +112,8 @@ int main(int argc, char** argv) {
 
     return EXIT_FAILURE;
   }
+  */
+  free(args.ns);
 
   return EXIT_SUCCESS;
 }
@@ -119,21 +126,15 @@ bool dean_runner(int k) {
   } else if (pid == 0) {
     char* k_str = int_to_str(k);
 
-    if (k_str == NULL) {
-      perror("Creating arguments for Dean program");
-
-      exit(EXIT_FAILURE);
-    }
+    if (k_str == NULL) { exit(EXIT_FAILURE); }
 
     if (execl("./bin/dean", "dean", "-K", k_str, NULL) == -1) {
-      perror("Executing Dean program");
       free(k_str);
-
       exit(EXIT_FAILURE);
     }
   } else {
     int status;
-
+    
     sleep(1);
     waitpid(pid, &status, WNOHANG);
 
@@ -144,7 +145,7 @@ bool dean_runner(int k) {
 }
 
 bool board_runner(int* ns, ssize_t ns_len) {
-  for (size_t i = 0; i < BOARDS_LEN; i++) {
+  for (size_t i = 0; i < BOARDS_LENGTH; i++) {
     const pid_t pid = fork();
 
     if (pid == -1) {
@@ -210,13 +211,6 @@ bool students_runner(int k, int* ns, int t) {
 
           exit(EXIT_FAILURE);
         }
-      } else {
-        int status;
-
-        sleep(1);
-        waitpid(pid, &status, WNOHANG);
-
-        if (WIFEXITED(status) && WEXITSTATUS(status) != 0) return false;
       }
     }
   }
