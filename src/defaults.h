@@ -10,6 +10,7 @@
 // questions.
 static const int BOARD_MAX_STUDENTS = 3;
 
+// TODO: change to char**
 static const float GRADES[] = {2.0, 3.0, 3.5, 4.0, 4.5, 5.0};
 static const ssize_t GRADES_LEN = 6;
 
