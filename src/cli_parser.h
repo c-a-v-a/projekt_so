@@ -23,29 +23,29 @@ static const int DEFAULT_T = 2;
 #else
 
 /**
- * Constant representing minimum number of majors at the faculty.
+ * Minimum number of majors at the faculty.
  */
 static const int DEFAULT_K = 5;
 
 /**
- * Constant defining minimum number of students on given major.
+ * Minimum number of students on given major.
  */
 static const int N_RANGE_MIN = 80;
 
 /**
- * Constant defining maximum number of students on given major.
+ * Maximum number of students on given major.
  */
 static const int N_RANGE_MAX = 160;
 
 /**
- * Constant representing time, that student has to prepere the answer.
+ * Time that student has to prepere the answer.
  */
 static const int DEFAULT_T = 5;
 
 #endif
 
 /**
- * Constant defining the numver and names of examination boards.
+ * The number and names of examination boards.
  */
 static const char BOARDS[] = {'A', 'B'};
 static const ssize_t BOARDS_LENGTH = 2;
@@ -117,7 +117,7 @@ struct StudentArguments {
 };
 
 /**
- * Function that creates the BoardArguemnts structure filled with values, that
+ * Creates the BoardArguemnts structure filled with values, that
  * signify, that the structure was not parsed yet.
  *
  * @see BoardArguments structure
@@ -127,7 +127,7 @@ struct StudentArguments {
 struct BoardArguments initial_board();
 
 /**
- * Function that creates the DeanArguments structure filled with values, that
+ * Creates the DeanArguments structure filled with values, that
  * signify, that the structure was not parsed yet.
  *
  * @see DeanArguments structure
@@ -137,7 +137,7 @@ struct BoardArguments initial_board();
 struct DeanArguments initial_dean();
 
 /**
- * Function that creates the StudentArguments structure filled with values, that
+ * Creates the StudentArguments structure filled with values, that
  * signify, that the structure was not parsed yet.
  *
  * @see StudentArguments structure
@@ -146,7 +146,7 @@ struct DeanArguments initial_dean();
 struct StudentArguments initial_student();
 
 /**
- * Function that parses given command line arguments into a structure.
+ * Parses given command line arguments into a structure.
  *
  * @note This function sets errno value.
  * @param argc The standard argument count parameter from main.
@@ -154,16 +154,13 @@ struct StudentArguments initial_student();
  * @param args The pointer to the output structure.
  * @return Wheather the parsing was succesfull or some error occured while
  * parsing arguments (e.g. incorrect flag).
- *
- * @see parse_dean for the program specific parsing.
- * @see parse_student for the program specific parsing.
  */
 bool parse_board(int argc, char** argv, struct BoardArguments* args);
 bool parse_dean(int argc, char** argv, struct DeanArguments* args);
 bool parse_student(int argc, char** argv, struct StudentArguments* args);
 
 /**
- * Functions that fills the empty (unparsed) fields of the structure to their
+ * Fills the empty (unparsed) fields of the structure to their
  * default values (defined in the requirements).
  *
  * @note This function sets errno value.
@@ -173,13 +170,10 @@ bool parse_student(int argc, char** argv, struct StudentArguments* args);
 bool fill_dean(struct DeanArguments* args);
 
 /**
- * Function that checks wheather current arguments meet the requirements.
+ * Checks wheather current arguments meet the requirements.
  *
  * @param The structure that needs to be validated.
  * @return Wheather the passed structure meets the requirements.
- *
- * @see validate_dean
- * @see validate_student
  */
 bool validate_board(struct BoardArguments args);
 bool validate_dean(struct DeanArguments args);

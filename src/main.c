@@ -11,11 +11,10 @@
 #include <unistd.h>
 
 #include "cli_parser.h"
+#include "ipc_wrapper.h"
 
 #include "argprinter.h"
 #include "defaults.h"
-#include "my_semaphores.h"
-#include "my_shm.h"
 #include "str_creator.h"
 
 // TODO: print to log file and not to stdout
@@ -57,19 +56,19 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  /*
   if (!create_all_semaphores()) {
     perror("Unable to create semaphores");
 
     return EXIT_FAILURE;
   }
 
-  if (!create_all_shm()) {
+  if (!create_all_shared_memory()) {
     perror("Unable to create shared memory blocks");
 
     return EXIT_FAILURE;
   }
 
+  /*
   if (!dean_runner(args.k)) {
     perror("Unable to run Dean program");
     remove_all_semaphores();
@@ -114,6 +113,8 @@ int main(int argc, char** argv) {
   }
   */
   free(args.ns);
+  remove_all_semaphores();
+  remove_all_shared_memory();
 
   return EXIT_SUCCESS;
 }
