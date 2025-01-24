@@ -64,12 +64,6 @@ static const ssize_t BOARDS_LENGTH = 2;
  * program requirements.
  */
 struct BoardArguments {
-  /**
-   * An array that holds the amount of students enrolled in given major *k* as
-   * the k-1 element.
-   */
-  int* ns;
-  ssize_t ns_len;  /**< Length of the ns array */
   char board_name; /**< Name, either 'A' or 'B'. @see BOARDS */
 };
 

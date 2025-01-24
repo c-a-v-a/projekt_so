@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  sleep(5);
+  sleep(1);
   printf("%d %d %d %d", dean, boards[0], boards[1], student_leader);
 
   cleanup(&arguments);
@@ -173,17 +173,9 @@ bool board_runner(int* ns, ssize_t ns_len, pid_t* boards) {
       return false;
     } else if (pid == 0) {
       const char b[2] = {BOARDS[i], '\0'};
-      char* ns_str = int_arr_to_str(ns, ns_len);
 
-      if (ns_str == NULL) {
-        perror("Board error. Failed to create arguments");
-
-        exit(EXIT_FAILURE);
-      }
-
-      if (execl("./bin/board", "board", "-b", b, "-ns", ns_str, NULL) == -1) {
+      if (execl("./bin/board", "board", "-b", b, NULL) == -1) {
         perror("Board error. Failed to run process");
-        free(ns_str);
 
         exit(EXIT_FAILURE);
       }

@@ -4,9 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct BoardArguments initial_board() {
-  return (struct BoardArguments){NULL, -1, '\0'};
-}
+struct BoardArguments initial_board() { return (struct BoardArguments){'\0'}; }
 
 struct DeanArguments initial_dean() { return (struct DeanArguments){-1}; }
 
@@ -27,25 +25,7 @@ bool parse_board(int argc, char** argv, struct BoardArguments* arguments) {
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
 
-    if (strcmp(flag, "-ns") == 0) {
-      char* ns_string = argv[++i];
-      int* ns = NULL;
-      ssize_t ns_len = 0;
-      char* token = strtok(ns_string, ",");
-
-      do {
-        ns_len++;
-        ns = realloc(ns, ns_len * sizeof(int));
-
-        if (ns == NULL) return false;
-
-        ns[ns_len - 1] = atoi(token);
-        token = strtok(NULL, ",");
-      } while (token != NULL);
-
-      arguments->ns = ns;
-      arguments->ns_len = ns_len;
-    } else if (strcmp(flag, "-b") == 0) {
+    if (strcmp(flag, "-b") == 0) {
       char* board_string = argv[++i];
 
       if (strlen(board_string) != 1) {
@@ -167,19 +147,13 @@ bool fill_main(struct MainArguments* arguments) {
 }
 
 bool validate_board(struct BoardArguments arguments) {
-  bool ns_test = true;
   bool name_test = false;
-
-  for (ssize_t i = 0; i < arguments.ns_len; i++) {
-    int n = arguments.ns[i];
-    ns_test = ns_test && n >= N_RANGE_MIN && n <= N_RANGE_MAX;
-  }
 
   for (ssize_t i = 0; i < BOARDS_LENGTH; i++) {
     name_test = name_test || arguments.board_name == BOARDS[i];
   }
 
-  return arguments.ns_len >= DEFAULT_K && ns_test && name_test;
+  return name_test;
 }
 
 bool validate_dean(struct DeanArguments arguments) { return arguments.k > -1; }
