@@ -1,50 +1,65 @@
+#include "student.h"
+
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/shm.h>
 #include <unistd.h>
 
-#include "../argparser.h"
-#include "../argprinter.h"
-#include "../argvalidator.h"
-#include "../my_semaphores.h"
-#include "../my_shm.h"
+#include "../cli_parser.h"
+#include "../logger.h"
 
 volatile sig_atomic_t CLEANUP = 0;
-static const int RETAKER_PROBABILITY = 5;
+
+int main(int argc, char** argv) {
+  struct StudentArguments args = initial_student();
+
+  if (!parse_student(argc, argv, &args)) {
+    perror("Student error. Failed to parse arguments");
+    return EXIT_FAILURE;
+  }
+
+  if (!validate_student(args)) {
+    errno = EINVAL;
+    perror("Student error. Failed to validate arguments");
+    return EXIT_FAILURE;
+  }
+
+  if (!attach_handler()) {
+    perror("Student error. Failed to attach signal handler");
+    return EXIT_FAILURE;
+  }
+
+  log_student_spawned(args);
+
+  // get dean k
+  // go to board room
+  // go to board if already has one grade go to second board
+  // get questions
+  // wait
+  // send answers
+  // get grades
+  // go to board again
+  // exit
+
+  return EXIT_SUCCESS;
+}
+
+bool attach_handler() {
+  struct sigaction sa;
+
+  sa.sa_handler = signal_handler;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+
+  if (sigaction(SIGUSR1, &sa, NULL) == -1) return false;
+
+  return true;
+}
 
 void signal_handler(int signal) {
   if (signal == SIGUSR1 && CLEANUP == 0) {
     printf("STUDENT: SIGUSR1\n");
     exit(EXIT_SUCCESS);
   }
-}
-
-int main(int argc, char** argv) {
-  if (signal(SIGUSR1, signal_handler) == SIG_ERR) {
-    perror("Unable to register SIGUSR1 handler");
-    exit(1);
-  }
-
-  struct StudentArgs args = student_args_init();
-  argparse_student(argc, argv, &args);
-
-  if (!validate_student_args(&args)) {
-    errno = EINVAL;
-    perror("Error while parsing Student arguments");
-    return EXIT_FAILURE;
-  }
-
-  print_student_args(&args);
-
-  int semid = get_semid();
-  int shmid = get_dean_shmid();
-  int* shm_ptr = shmat(shmid, NULL, 0);
-
-  sem_wait(semid, DEAN_SEMAPHORE);
-  printf("MESSAGE RECIEVED (%d) %d %d\n", *shm_ptr, args.k, args.n);
-  sem_post(semid, DEAN_SEMAPHORE);
-
-  return EXIT_SUCCESS;
 }

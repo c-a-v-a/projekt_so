@@ -16,100 +16,106 @@
 #include "ipc_wrapper.h"
 #include "logger.h"
 
-// TODO: print to log file and not to stdout
-// TODO: take care of zombies
-
 volatile sig_atomic_t SIGNALED = 0;
 
 int main(int argc, char** argv) {
-  struct DeanArguments args = initial_dean();
+  struct MainArguments arguments = initial_main();
 
   srand(time(NULL));
 
-  if (setpgid(0, 0) == -1) {
-    perror("Unable to create a pid group");
+  if (!parse_main(argc, argv, &arguments)) {
+    perror("Main error. Failed to parse arguments");
+
     return EXIT_FAILURE;
   }
 
-  if (!handle_signal()) {
-    perror("Unable to register signal handler");
+  if (!fill_main(&arguments)) {
+    perror("Main error. Failed to fill missing arguments");
+    cleanup(&arguments);
+
     return EXIT_FAILURE;
   }
 
-  if (!parse_dean(argc, argv, &args)) {
-    perror("Unable to parse Dean arguments");
-    return EXIT_FAILURE;
-  }
-
-  if (!fill_dean(&args)) {
-    perror("Unable to parse Dean arguments");
-    return EXIT_FAILURE;
-  }
-
-  if (!validate_dean(args)) {
-    if (args.ns != NULL) free(args.ns);
-
+  if (!validate_main(arguments)) {
     errno = EINVAL;
-    perror("Invalid Dean arguments");
+
+    perror("Main error. Failed to validate arguments");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
+  }
+
+  if (!attach_handler()) {
+    perror("Main error. Failed to register signal handler");
+    cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
   if (!create_all_semaphores()) {
-    perror("Unable to create semaphores");
+    perror("Main error. Failed to create semaphores");
+    cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
   if (!create_all_shared_memory()) {
-    perror("Unable to create shared memory blocks");
+    perror("Main error. Failed to create shared memory blocks");
+    cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
+  if (!create_all_message_queues()) {
+    perror("Main error. Failed to create message queues");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
+  }
 
   if(!open_log_file()){
-    perror("LOGOPEN");
-    return 1;   
+    perror("Main error. Failed to open log file");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
   }
-  if (!log_dean_spawned(args)) {
-    perror("LOG");
-    return 1;
-  }
-  if(!close_log_file()) {
-    perror("LOGCLOSE");
-    return 1;
+
+  if (!log_main_spawned(arguments)) {
+    perror("Main error. Failed to open log program state");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
   }
 
   /*
-  if (!dean_runner(args.k)) {
-    perror("Unable to run Dean program");
+  if (!dean_runner(arguments.k)) {
+    perror("Unable to run Main program");
     remove_all_semaphores();
     remove_all_shm();
-    free(args.ns);
+    free(arguments.ns);
 
     return EXIT_FAILURE;
   }
 
-  if (!board_runner(args.ns, args.ns_len)) {
+  if (!board_runner(arguments.ns, arguments.ns_len)) {
     perror("Unable to run Board program");
     remove_all_semaphores();
     remove_all_shm();
-    free(args.ns);
+    free(arguments.ns);
 
     return EXIT_FAILURE;
   }
 
-  if (!students_runner(args.k, args.ns, args.t)) {
+  if (!students_runner(arguments.k, arguments.ns, arguments.t)) {
     perror("Unable to run Student program");
     remove_all_semaphores();
     remove_all_shm();
-    free(args.ns);
+    free(arguments.ns);
 
     return EXIT_FAILURE;
   }
 
-  free(args.ns);
+  free(arguments.ns);
 
   while (SIGNALED == 0) sleep(1);
 
@@ -125,37 +131,34 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
   */
-  free(args.ns);
-  remove_all_semaphores();
-  remove_all_shared_memory();
+
+  free(arguments.ns);
+
+  if (!remove_all_semaphores()) {
+    perror("Main error. Failed to clean up semaphores");
+  }
+
+  if (!remove_all_shared_memory()) {
+    perror("Main error. Failed to clean up shared memory");
+  }
+
+  if (!remove_all_message_queues()) {
+    perror("Main error. Failed to clean up message queues");
+  }
+
+  if (!close_log_file()) {
+    perror("Main error. Failed to close log file");
+  }
 
   return EXIT_SUCCESS;
 }
 
-bool dean_runner(int k) {
-  const pid_t pid = fork();
-
-  if (pid == -1) {
-    return false;
-  } else if (pid == 0) {
-    char* k_str = int_to_str(k);
-
-    if (k_str == NULL) { exit(EXIT_FAILURE); }
-
-    if (execl("./bin/dean", "dean", "-K", k_str, NULL) == -1) {
-      free(k_str);
-      exit(EXIT_FAILURE);
-    }
-  } else {
-    int status;
-    
-    sleep(1);
-    waitpid(pid, &status, WNOHANG);
-
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) return false;
-  }
-
-  return true;
+void cleanup(struct MainArguments* arguments) {
+  free(arguments->ns);
+  remove_all_semaphores();
+  remove_all_shared_memory();
+  remove_all_message_queues();
+  close_log_file();
 }
 
 bool board_runner(int* ns, ssize_t ns_len) {
@@ -232,16 +235,7 @@ bool students_runner(int k, int* ns, int t) {
   return true;
 }
 
-void signal_handler(int signal) {
-  if (signal == SIGUSR1 && SIGNALED == 0) {
-    printf("MAIN: SIGUSR1\n");
-
-    SIGNALED = 1;
-    kill(0, SIGUSR1);
-  }
-}
-
-bool handle_signal() {
+bool attach_handler() {
   struct sigaction sa;
 
   sa.sa_handler = signal_handler;
@@ -251,6 +245,15 @@ bool handle_signal() {
   if (sigaction(SIGUSR1, &sa, NULL) == -1) return false;
 
   return true;
+}
+
+void signal_handler(int signal) {
+  if (signal == SIGUSR1 && SIGNALED == 0) {
+    printf("MAIN: SIGUSR1\n");
+
+    SIGNALED = 1;
+    kill(0, SIGUSR1);
+  }
 }
 
 char* int_to_str(int x) {

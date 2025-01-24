@@ -1,3 +1,5 @@
+#include "dean.h"
+
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -5,52 +7,50 @@
 #include <sys/shm.h>
 #include <unistd.h>
 
-#include "../argparser.h"
-#include "../argprinter.h"
-#include "../argvalidator.h"
-#include "../my_semaphores.h"
-#include "../my_shm.h"
+#include "../cli_parser.h"
+#include "../logger.h"
 
 volatile sig_atomic_t CLEANUP = 0;
+
+int main(int argc, char** argv) {
+  struct DeanArguments args = initial_dean();
+
+  if (!parse_dean(argc, argv, &args)) {
+    perror("Dean error. Failed to parse arguments");
+    return EXIT_FAILURE;
+  }
+
+  if (!validate_dean(args)) {
+    errno = EINVAL;
+    perror("Dean error. Failed to validate arguments");
+    return EXIT_FAILURE;
+  }
+
+  if (!attach_handler()) {
+    perror("Dean error. Failed to attach signal handler");
+    return EXIT_FAILURE;
+  }
+
+  log_dean_spawned(args);
+
+  return EXIT_SUCCESS;
+}
+
+bool attach_handler() {
+  struct sigaction sa;
+
+  sa.sa_handler = signal_handler;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+
+  if (sigaction(SIGUSR1, &sa, NULL) == -1) return false;
+
+  return true;
+}
 
 void signal_handler(int signal) {
   if (signal == SIGUSR1 && CLEANUP == 0) {
     printf("DEAN: SIGUSR1\n");
     CLEANUP = 1;
-  }
-}
-
-int main(int argc, char** argv) {
-  if (signal(SIGUSR1, signal_handler) == SIG_ERR) {
-    perror("Unable to register SIGUSR1 handler");
-    exit(1);
-  }
-
-  struct DeanArgs args = dean_args_init();
-  argparse_dean(argc, argv, &args);
-
-  if (!validate_dean_args(&args)) {
-    errno = EINVAL;
-    perror("Error while parsing Dean arguments");
-    return EXIT_FAILURE;
-  }
-
-  print_dean_args(&args);
-
-  int semid = get_semid();
-  int shmid = get_dean_shmid();
-  int* shm_ptr = shmat(shmid, NULL, 0);
-
-  sleep(30);
-
-  *shm_ptr = 69;
-
-  sem_post(semid, DEAN_SEMAPHORE);
-
-  while (1) {
-    sleep(2);
-
-    // Clean up goes here
-    if (CLEANUP == 1) return EXIT_SUCCESS;
   }
 }

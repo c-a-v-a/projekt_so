@@ -7,14 +7,8 @@ OBJDIR=./obj
 BINDIR=./bin
 SRCDIR=./src
 
-_OBJ_MAIN=main.o logger.o cli_parser.o ipc_wrapper.o
-OBJ_MAIN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_MAIN))
-_OBJ_STUDENT=student.o argparser.o argprinter.o argvalidator.o defaults.o ipc_wrapper.o
-OBJ_STUDENT=$(patsubst %,$(OBJDIR)/%,$(_OBJ_STUDENT))
-_OBJ_DEAN=dean.o argparser.o argprinter.o argvalidator.o defaults.o ipc_wrapper.o
-OBJ_DEAN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_DEAN))
-_OBJ_BOARD=board.o argparser.o argprinter.o argvalidator.o defaults.o ipc_wrapper.o
-OBJ_BOARD=$(patsubst %,$(OBJDIR)/%,$(_OBJ_BOARD))
+_OBJ_FILES=logger.o cli_parser.o ipc_wrapper.o
+OBJ_FILES=$(patsubst %,$(OBJDIR)/%,$(_OBJ_FILES))
 
 all: main student dean board
 
@@ -24,19 +18,19 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 $(OBJDIR)/%.o: $(SRCDIR)/**/%.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-main: $(OBJ_MAIN)
+main: $(OBJDIR)/main.o $(OBJ_FILES)
 	make setup
 	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS) -lm
 
-student: $(OBJ_STUDENT)
+student: $(OBJDIR)/student.o $(OBJ_FILES)
 	make setup
 	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS)
 
-dean: $(OBJ_DEAN)
+dean: $(OBJDIR)/dean.o $(OBJ_FILES)
 	make setup
 	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS)
 
-board: $(OBJ_BOARD)
+board: $(OBJDIR)/board.o $(OBJ_FILES)
 	make setup
 	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS) -pthread
 

@@ -8,7 +8,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "cli_parser.h"
+
 int main(int argc, char** argv);
+
+void cleanup(struct MainArguments* arguments);
 
 // Collection of functions that are responsible for creating new processes
 // and executing given programs (dean, board and student). Arguments that
@@ -18,8 +22,8 @@ bool dean_runner(int k);
 bool board_runner(int* ns, ssize_t ns_len);
 bool students_runner(int k, int* ns, int t);
 
+bool attach_handler();
 void signal_handler(int signal);
-bool handle_signal();
 
 char* int_to_str(int x);
 char* int_arr_to_str(int* xs, ssize_t n);

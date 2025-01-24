@@ -13,8 +13,9 @@ bool close_log_file();
 
 bool logger(char* format, ...);
 
-bool log_dean_spawned(struct DeanArguments arguments);
 bool log_board_spawned(struct BoardArguments arguments);
+bool log_dean_spawned(struct DeanArguments arguments);
+bool log_main_spawned(struct MainArguments arguments);
 bool log_student_spawned(struct StudentArguments arguments);
 
 #endif

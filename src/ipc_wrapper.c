@@ -36,12 +36,11 @@ bool create_all_semaphores() {
 
 bool remove_all_semaphores() {
   int semid = get_semid();
-  bool result = true;
+  bool result;
 
   if (semid == -1) return false;
 
-  result = result && semctl(semid, END_SEMAPHORE, IPC_RMID) != -1;
-  result = result && semctl(semid, DEAN_SEMAPHORE, IPC_RMID) != -1;
+  result = semctl(semid, 0, IPC_RMID) != -1;
 
   if (remove(SEMAPHORES_FILE) == -1) return false;
 
@@ -162,7 +161,7 @@ int get_board_a_msgqid() {
 
 int get_board_b_msgqid() {
   int msgqid = -1;
-  key_t key = ftok(BOARD_A_MESSAGE_QUEUE_FILE, PROJECT_ID);
+  key_t key = ftok(BOARD_B_MESSAGE_QUEUE_FILE, PROJECT_ID);
 
   if (key == -1) return msgqid;
 

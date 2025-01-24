@@ -1,3 +1,5 @@
+#include "board.h"
+
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
@@ -6,56 +8,35 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../argparser.h"
-#include "../argprinter.h"
-#include "../argvalidator.h"
+#include "../cli_parser.h"
+#include "../logger.h"
 
 volatile sig_atomic_t CLEANUP = 0;
 
-static const int BOARD_MAX_STUDENTS = 3;
-static const float GRADES[] = {2.0, 3.0, 3.5, 4.0, 4.5, 5.0};
-static const ssize_t GRADES_LEN = 6;
-static const int GRADES_PROBABILITY[] = {5, 15, 30, 30, 15, 5};
-
-void* board_member(void* arg) {
-  int* x = (int*)arg;
-  printf("I am a board member %d\n", *x);
-
-  return NULL;
-}
-
-void signal_handler(int signal) {
-  if (signal == SIGUSR1 && CLEANUP == 0) {
-    printf("BOARD: SIGUSR1\n");
-    CLEANUP = 1;
-  }
-}
-
-// TODO: general code cleanup
-// TODO: general documentation cleanup
 int main(int argc, char** argv) {
-  if (signal(SIGUSR1, signal_handler) == SIG_ERR) {
-    perror("Unable to register SIGUSR1 handler");
-    exit(1);
-  }
-
+  struct BoardArguments args = initial_board();
   pthread_t t1, t2, t3;
   int a = 1;
   int b = 2;
   int c = 3;
-  struct BoardArgs args = board_args_init();
-  argparse_board(argc, argv, &args);
 
-  if (!validate_board_args(&args)) {
-    if (args.ns != NULL) {
-      free(args.ns);
-    }
-    errno = EINVAL;
-    perror("Error while parsing Board arguments");
+  if (!parse_board(argc, argv, &args)) {
+    perror("Board error. Failed to parse arguments");
     return EXIT_FAILURE;
   }
 
-  print_board_args(&args);
+  if (!validate_board(args)) {
+    errno = EINVAL;
+    perror("Board error. Failed to validate arguments");
+    return EXIT_FAILURE;
+  }
+
+  if (!attach_handler()) {
+    perror("Board error. Failed to attach signal handler");
+    return EXIT_FAILURE;
+  }
+
+  log_board_spawned(args);
 
   pthread_create(&t1, NULL, board_member, (void*)&a);
   pthread_create(&t2, NULL, board_member, (void*)&b);
@@ -65,12 +46,31 @@ int main(int argc, char** argv) {
   pthread_join(t2, NULL);
   pthread_join(t3, NULL);
 
-  while (1) {
-    sleep(2);
+  return EXIT_SUCCESS;
+}
 
-    if (CLEANUP == 1) {
-      if (args.ns != NULL) free(args.ns);
-      return EXIT_SUCCESS;
-    }
+void* board_member(void* arg) {
+  int* x = (int*)arg;
+  printf("I am a board member %d\n", *x);
+
+  return NULL;
+}
+
+bool attach_handler() {
+  struct sigaction sa;
+
+  sa.sa_handler = signal_handler;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+
+  if (sigaction(SIGUSR1, &sa, NULL) == -1) return false;
+
+  return true;
+}
+
+void signal_handler(int signal) {
+  if (signal == SIGUSR1 && CLEANUP == 0) {
+    printf("BOARD: SIGUSR1\n");
+    CLEANUP = 1;
   }
 }

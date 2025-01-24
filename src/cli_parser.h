@@ -73,20 +73,24 @@ struct BoardArguments {
   char board_name; /**< Name, either 'A' or 'B'. @see BOARDS */
 };
 
+struct DeanArguments {
+  int k; /**< Number of available majors at our faculty. */
+};
+
 /**
  * Structure representing all possible arguments, that can be passed to the
- * *dean* process.
+ * *main* process.
  *
  * The values k = -1, ns = NULL, ns_len = -1 or t = -1 indicate, that those
  * fields were not parsed correctly, or were not passed in to the program.
  *
- * @see initial_dean function for creating unparsed structure.
- * @see parse_dean function for parsing command line arguments into this
+ * @see initial_main function for creating unparsed structure.
+ * @see parse_main function for parsing command line arguments into this
  * structure.
- * @see validate_dean function for validating, if the passed in arguments meet
+ * @see validate_main function for validating, if the passed in arguments meet
  * program requirements.
  */
-struct DeanArguments {
+struct MainArguments {
   /**
    * An array that holds the amount of students enrolled in given major *k* as
    * the k-1 element.
@@ -126,15 +130,17 @@ struct StudentArguments {
  */
 struct BoardArguments initial_board();
 
+struct DeanArguments initial_dean();
+
 /**
- * Creates the DeanArguments structure filled with values, that
+ * Creates the MainArguments structure filled with values, that
  * signify, that the structure was not parsed yet.
  *
- * @see DeanArguments structure
- * @return DeanArguments structure with values ns = NULL, ns_len = -1, k = -1
+ * @see MainArguments structure
+ * @return MainArguments structure with values ns = NULL, ns_len = -1, k = -1
  * and t = -1.
  */
-struct DeanArguments initial_dean();
+struct MainArguments initial_main();
 
 /**
  * Creates the StudentArguments structure filled with values, that
@@ -151,13 +157,14 @@ struct StudentArguments initial_student();
  * @note This function sets errno value.
  * @param argc The standard argument count parameter from main.
  * @param argv The standard argument array from main.
- * @param args The pointer to the output structure.
+ * @param arguments The pointer to the output structure.
  * @return Wheather the parsing was succesfull or some error occured while
  * parsing arguments (e.g. incorrect flag).
  */
-bool parse_board(int argc, char** argv, struct BoardArguments* args);
-bool parse_dean(int argc, char** argv, struct DeanArguments* args);
-bool parse_student(int argc, char** argv, struct StudentArguments* args);
+bool parse_board(int argc, char** argv, struct BoardArguments* arguments);
+bool parse_dean(int argc, char** argv, struct DeanArguments* arguments);
+bool parse_main(int argc, char** argv, struct MainArguments* arguments);
+bool parse_student(int argc, char** argv, struct StudentArguments* arguments);
 
 /**
  * Fills the empty (unparsed) fields of the structure to their
@@ -167,7 +174,7 @@ bool parse_student(int argc, char** argv, struct StudentArguments* args);
  * @param THe pointer to the structure that needs to be filled.
  * @return Wheather the operation was succesfull or some error occured.
  */
-bool fill_dean(struct DeanArguments* args);
+bool fill_main(struct MainArguments* arguments);
 
 /**
  * Checks wheather current arguments meet the requirements.
@@ -175,9 +182,10 @@ bool fill_dean(struct DeanArguments* args);
  * @param The structure that needs to be validated.
  * @return Wheather the passed structure meets the requirements.
  */
-bool validate_board(struct BoardArguments args);
-bool validate_dean(struct DeanArguments args);
-bool validate_student(struct StudentArguments args);
+bool validate_board(struct BoardArguments arguments);
+bool validate_dean(struct DeanArguments arguments);
+bool validate_main(struct MainArguments arguments);
+bool validate_student(struct StudentArguments arguments);
 
 int* _generate_random_ns(int k, int min, int max);
 

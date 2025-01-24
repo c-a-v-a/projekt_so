@@ -25,24 +25,24 @@ bool close_log_file() {
 bool logger(char* format, ...) {
   if (log_file == NULL) return false;
 
-  va_list args;
+  va_list arguments;
   bool result = true;
 
-  va_start(args, format);
-  result = result && vprintf(format, args) >= 0;
-  va_end(args);
+  va_start(arguments, format);
+  result = result && vprintf(format, arguments) >= 0;
+  va_end(arguments);
 
-  va_start(args, format);
-  result = result && vfprintf(log_file, format, args) >= 0;
-  va_end(args);
+  va_start(arguments, format);
+  result = result && vfprintf(log_file, format, arguments) >= 0;
+  va_end(arguments);
 
   return result;
 }
 
-bool log_dean_spawned(struct DeanArguments arguments) {
+bool log_board_spawned(struct BoardArguments arguments) {
   bool result = true;
 
-  result = result && logger("SPAWNED DEAN\tK:%d T:%d NS:", arguments.k, arguments.t);
+  result = result && logger("SPAWNED BOARD %c NS:", arguments.board_name);
 
   for (ssize_t i = 0; i < arguments.ns_len; i++) {
     result = result && logger("%d ", arguments.ns[i]);
@@ -53,10 +53,14 @@ bool log_dean_spawned(struct DeanArguments arguments) {
   return result;
 }
 
-bool log_board_spawned(struct BoardArguments arguments) {
+bool log_dean_spawned(struct DeanArguments arguments) {
+  return logger("Spawned dean\tK:%d\n", arguments.k);
+}
+
+bool log_main_spawned(struct MainArguments arguments) {
   bool result = true;
 
-  result = result && logger("SPAWNED BOARD %c NS:", arguments.board_name);
+  result = result && logger("SPAWNED DEAN\tK:%d T:%d NS:", arguments.k, arguments.t);
 
   for (ssize_t i = 0; i < arguments.ns_len; i++) {
     result = result && logger("%d ", arguments.ns[i]);
