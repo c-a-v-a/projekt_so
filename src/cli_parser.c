@@ -5,19 +5,17 @@
 #include <string.h>
 
 struct BoardArguments initial_board() {
-  return (struct BoardArguments) { NULL, -1, '\0' };
+  return (struct BoardArguments){NULL, -1, '\0'};
 }
 
-struct DeanArguments initial_dean() {
-  return (struct DeanArguments) { -1 };
-}
+struct DeanArguments initial_dean() { return (struct DeanArguments){-1}; }
 
 struct MainArguments initial_main() {
-  return (struct MainArguments) { NULL, -1, -1, -1 };
+  return (struct MainArguments){NULL, -1, -1, -1};
 }
 
 struct StudentArguments initial_student() {
-  return (struct StudentArguments) { -1, -1, -1 };
+  return (struct StudentArguments){-1, -1, -1};
 }
 
 bool parse_board(int argc, char** argv, struct BoardArguments* arguments) {
@@ -73,7 +71,7 @@ bool parse_dean(int argc, char** argv, struct DeanArguments* arguments) {
 
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
-    
+
     if (strcmp(flag, "-k") == 0) {
       arguments->k = atoi(argv[++i]);
     } else {
@@ -133,7 +131,7 @@ bool parse_student(int argc, char** argv, struct StudentArguments* arguments) {
 
   for (int i = 1; i < argc - 1; i++) {
     const char* flag = argv[i];
-    
+
     if (strcmp(flag, "-k") == 0) {
       arguments->k = atoi(argv[++i]);
     } else if (strcmp(flag, "-t") == 0) {
@@ -161,7 +159,8 @@ bool fill_main(struct MainArguments* arguments) {
 
   if (arguments->ns_len == -1 && arguments->ns == NULL) {
     arguments->ns_len = arguments->k;
-    arguments->ns = _generate_random_ns(arguments->ns_len, N_RANGE_MIN, N_RANGE_MAX);
+    arguments->ns =
+        _generate_random_ns(arguments->ns_len, N_RANGE_MIN, N_RANGE_MAX);
   }
 
   return !(arguments->ns == NULL);
@@ -183,9 +182,7 @@ bool validate_board(struct BoardArguments arguments) {
   return arguments.ns_len >= DEFAULT_K && ns_test && name_test;
 }
 
-bool validate_dean(struct DeanArguments arguments) {
-  return arguments.k > -1;
-}
+bool validate_dean(struct DeanArguments arguments) { return arguments.k > -1; }
 
 bool validate_main(struct MainArguments arguments) {
   bool ns_test = true;
@@ -195,8 +192,8 @@ bool validate_main(struct MainArguments arguments) {
     ns_test = ns_test && n >= N_RANGE_MIN && n <= N_RANGE_MAX;
   }
 
-  return arguments.k >= DEFAULT_K && arguments.ns_len == arguments.k && ns_test && 
-    arguments.t >= 0;
+  return arguments.k >= DEFAULT_K && arguments.ns_len == arguments.k &&
+         ns_test && arguments.t >= 0;
 }
 
 bool validate_student(struct StudentArguments arguments) {
@@ -214,4 +211,3 @@ int* _generate_random_ns(int k, int min, int max) {
 
   return ns;
 }
-

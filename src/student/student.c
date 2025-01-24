@@ -7,12 +7,14 @@
 #include <unistd.h>
 
 #include "../cli_parser.h"
+#include "../ipc_wrapper.h"
 #include "../logger.h"
 
 volatile sig_atomic_t CLEANUP = 0;
 
 int main(int argc, char** argv) {
   struct StudentArguments args = initial_student();
+  int semaphore_id = get_semid();
 
   if (!parse_student(argc, argv, &args)) {
     perror("Student error. Failed to parse arguments");
@@ -30,7 +32,11 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  log_student_spawned(args);
+  sem_wait(semaphore_id, LOGGER_SEMAPHORE, 0);
+  if (!log_student_spawned(args)) {
+    perror("Student error. Failed to log program state");
+  }
+  sem_post(semaphore_id, LOGGER_SEMAPHORE, 0);
 
   // get dean k
   // go to board room

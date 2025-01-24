@@ -20,6 +20,10 @@ volatile sig_atomic_t SIGNALED = 0;
 
 int main(int argc, char** argv) {
   struct MainArguments arguments = initial_main();
+  pid_t dean;
+  pid_t boards[] = {-1, -1};
+  pid_t student_leader = -1;  // pid for the student group
+  int semaphore_id;
 
   srand(time(NULL));
 
@@ -73,66 +77,53 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if(!open_log_file()){
-    perror("Main error. Failed to open log file");
+  semaphore_id = get_semid();
+
+  if (semaphore_id == -1) {
+    perror("Main error. Failed to connect to semaphores");
     cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
+  sem_wait(semaphore_id, LOGGER_SEMAPHORE, 0);
   if (!log_main_spawned(arguments)) {
-    perror("Main error. Failed to open log program state");
+    perror("Main error. Failed to log program state");
+  }
+  sem_post(semaphore_id, LOGGER_SEMAPHORE, 0);
+
+  if (!dean_runner(arguments.k, &dean)) {
+    perror("Main error. Failed to spawn dean process");
     cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
-  /*
-  if (!dean_runner(arguments.k)) {
-    perror("Unable to run Main program");
-    remove_all_semaphores();
-    remove_all_shm();
-    free(arguments.ns);
+  if (!board_runner(arguments.ns, arguments.ns_len, boards)) {
+    perror("Main error. Failed to spawn board process");
+    cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
-  if (!board_runner(arguments.ns, arguments.ns_len)) {
-    perror("Unable to run Board program");
-    remove_all_semaphores();
-    remove_all_shm();
-    free(arguments.ns);
+  if (!students_runner(arguments.k, arguments.ns, arguments.t,
+                       &student_leader)) {
+    perror("Main error. Failed to spawn student process");
+    cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
-  if (!students_runner(arguments.k, arguments.ns, arguments.t)) {
-    perror("Unable to run Student program");
-    remove_all_semaphores();
-    remove_all_shm();
-    free(arguments.ns);
+  sleep(5);
+  printf("%d %d %d %d", dean, boards[0], boards[1], student_leader);
 
-    return EXIT_FAILURE;
-  }
+  cleanup(&arguments);
 
-  free(arguments.ns);
+  return EXIT_SUCCESS;
+}
 
-  while (SIGNALED == 0) sleep(1);
-
-  if (!remove_all_semaphores()) {
-    perror("Unable to remove semaphores");
-
-    return EXIT_FAILURE;
-  }
-
-  if (!remove_all_shm()) {
-    perror("Unable to remove shared memory blocks");
-
-    return EXIT_FAILURE;
-  }
-  */
-
-  free(arguments.ns);
+void cleanup(struct MainArguments* arguments) {
+  free(arguments->ns);
 
   if (!remove_all_semaphores()) {
     perror("Main error. Failed to clean up semaphores");
@@ -145,23 +136,36 @@ int main(int argc, char** argv) {
   if (!remove_all_message_queues()) {
     perror("Main error. Failed to clean up message queues");
   }
+}
 
-  if (!close_log_file()) {
-    perror("Main error. Failed to close log file");
+bool dean_runner(int k, pid_t* dean) {
+  const pid_t pid = fork();
+
+  if (pid == -1) {
+    return false;
+  } else if (pid == 0) {
+    char* k_str = int_to_str(k);
+
+    if (k_str == NULL) {
+      perror("Dean error. Failed to create arguments");
+
+      exit(EXIT_FAILURE);
+    }
+
+    if (execl("./bin/dean", "dean", "-k", k_str, NULL) == -1) {
+      perror("Dean error. Failed to run process");
+      free(k_str);
+
+      exit(EXIT_FAILURE);
+    }
+  } else {
+    *dean = pid;
   }
 
-  return EXIT_SUCCESS;
+  return true;
 }
 
-void cleanup(struct MainArguments* arguments) {
-  free(arguments->ns);
-  remove_all_semaphores();
-  remove_all_shared_memory();
-  remove_all_message_queues();
-  close_log_file();
-}
-
-bool board_runner(int* ns, ssize_t ns_len) {
+bool board_runner(int* ns, ssize_t ns_len, pid_t* boards) {
   for (size_t i = 0; i < BOARDS_LENGTH; i++) {
     const pid_t pid = fork();
 
@@ -172,31 +176,26 @@ bool board_runner(int* ns, ssize_t ns_len) {
       char* ns_str = int_arr_to_str(ns, ns_len);
 
       if (ns_str == NULL) {
-        perror("Creating arguments for Board program");
+        perror("Board error. Failed to create arguments");
 
         exit(EXIT_FAILURE);
       }
 
-      if (execl("./bin/board", "board", "-B", b, "-Ns", ns_str, NULL) == -1) {
-        perror("Executing Board program");
+      if (execl("./bin/board", "board", "-b", b, "-ns", ns_str, NULL) == -1) {
+        perror("Board error. Failed to run process");
         free(ns_str);
 
         exit(EXIT_FAILURE);
       }
     } else {
-      int status;
-
-      sleep(1);
-      waitpid(pid, &status, WNOHANG);
-
-      if (WIFEXITED(status) && WEXITSTATUS(status) != 0) return false;
+      boards[i] = pid;
     }
   }
 
   return true;
 }
 
-bool students_runner(int k, int* ns, int t) {
+bool students_runner(int k, int* ns, int t, pid_t* student_leader) {
   for (int i = 0; i < k; i++) {
     const int n = ns[i];
 
@@ -210,24 +209,36 @@ bool students_runner(int k, int* ns, int t) {
         char* n_str = int_to_str(j);
         char* t_str = int_to_str(t);
 
-        if (k_str == NULL || n_str == NULL) {
+        if (k_str == NULL || n_str == NULL || t_str == NULL) {
           if (k_str != NULL) free(k_str);
 
           if (n_str != NULL) free(n_str);
 
           if (t_str != NULL) free(t_str);
 
+          perror("Student error. Failed to create arguments");
+
           exit(EXIT_FAILURE);
         }
 
-        if (execl("./bin/student", "student", "-K", k_str, "-N", n_str, "-T",
+        if (*student_leader == -1) *student_leader = getpid();
+
+        if (setpgid(0, *student_leader) == -1) {
+          perror("Student error. Failed to set pgid");
+          exit(EXIT_FAILURE);
+        }
+
+        if (execl("./bin/student", "student", "-k", k_str, "-n", n_str, "-t",
                   t_str, NULL) == -1) {
-          perror("Executing Student program");
+          perror("Student error. Failed to run process");
           free(k_str);
           free(n_str);
+          free(t_str);
 
           exit(EXIT_FAILURE);
         }
+      } else if (*student_leader == -1) {
+        *student_leader = getpid();
       }
     }
   }

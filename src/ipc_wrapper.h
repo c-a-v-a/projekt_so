@@ -14,7 +14,7 @@
 #include <stddef.h>
 
 /**
- * Minimal possible permissions for ICP files, so that 
+ * Minimal possible permissions for ICP files, so that
  * semaphores, shared memory and message queues work as expected.
  */
 #define PERMISSIONS 0600
@@ -32,7 +32,7 @@ static const char SEMAPHORES_FILE[] = "./semaphores";
 /**
  * Amount of semaphores in the *SEMAPHORES_FILE*.
  */
-static const int SEMAPHORES_AMOUNT = 2;
+static const int SEMAPHORES_AMOUNT = 3;
 
 /**
  * Constants providing values used in constructing *sembuf* operation structure.
@@ -46,12 +46,14 @@ static const short SEMAPHORE_FLAGS = 0;
  */
 static const unsigned short END_SEMAPHORE = 0;
 static const unsigned short DEAN_SEMAPHORE = 1;
+static const unsigned short LOGGER_SEMAPHORE = 2;
 
 /**
  * Initial value of the semaphores.
  */
 static const unsigned short END_SEMAPHORE_VALUE = 0;
 static const unsigned short DEAN_SEMAPHORE_VALUE = 0;
+static const unsigned short LOGGER_SEMAPHORE_VALUE = 1;
 
 /**
  * File to which shared memory will be linked to.
@@ -68,7 +70,8 @@ static const size_t DEAN_SHARED_MEMORY_SIZE = sizeof(int);
  */
 static const char BOARD_A_MESSAGE_QUEUE_FILE[] = "./board_a_msgq";
 static const char BOARD_B_MESSAGE_QUEUE_FILE[] = "./board_b_msgq";
-static const char MESSAGE_QUEUE_FILES[][15] = {"./board_a_msgq", "./board_b_msgq"};
+static const char MESSAGE_QUEUE_FILES[][15] = {"./board_a_msgq",
+                                               "./board_b_msgq"};
 static const size_t MESSAGE_QUEUE_FILES_SIZE = 2;
 
 /**

@@ -69,7 +69,7 @@ struct BoardArguments {
    * the k-1 element.
    */
   int* ns;
-  ssize_t ns_len; /**< Length of the ns array */
+  ssize_t ns_len;  /**< Length of the ns array */
   char board_name; /**< Name, either 'A' or 'B'. @see BOARDS */
 };
 
@@ -111,7 +111,7 @@ struct MainArguments {
  * @see initial_student function for creating unparsed structure.
  * @see parse_student function for parsing command line arguments into this
  * structure.
- * @see validate_student function for validating, if the passed in arguments 
+ * @see validate_student function for validating, if the passed in arguments
  * meet program requirements.
  */
 struct StudentArguments {

@@ -6,23 +6,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-FILE* log_file = NULL;
-
-bool open_log_file() {
-  if (log_file != NULL) return false;
-
-  log_file = fopen(LOG_FILE_NAME, "w");
-
-  return !(log_file == NULL);
-}
-
-bool close_log_file() {
-  if (log_file == NULL) return false;
-
-  return fclose(log_file) == 0;
-}
-
 bool logger(char* format, ...) {
+  FILE* log_file = fopen(LOG_FILE_NAME, "a");
+
   if (log_file == NULL) return false;
 
   va_list arguments;
@@ -36,17 +22,21 @@ bool logger(char* format, ...) {
   result = result && vfprintf(log_file, format, arguments) >= 0;
   va_end(arguments);
 
+  fclose(log_file);
+
   return result;
 }
 
 bool log_board_spawned(struct BoardArguments arguments) {
   bool result = true;
 
-  result = result && logger("SPAWNED BOARD %c NS:", arguments.board_name);
+  result = result && logger("Spawned board %c NS:", arguments.board_name);
 
+  /*
   for (ssize_t i = 0; i < arguments.ns_len; i++) {
     result = result && logger("%d ", arguments.ns[i]);
   }
+  */
 
   result = result && logger("\n");
 
@@ -60,7 +50,8 @@ bool log_dean_spawned(struct DeanArguments arguments) {
 bool log_main_spawned(struct MainArguments arguments) {
   bool result = true;
 
-  result = result && logger("SPAWNED DEAN\tK:%d T:%d NS:", arguments.k, arguments.t);
+  result =
+      result && logger("Spawned main\tK:%d T:%d NS:", arguments.k, arguments.t);
 
   for (ssize_t i = 0; i < arguments.ns_len; i++) {
     result = result && logger("%d ", arguments.ns[i]);
@@ -72,5 +63,6 @@ bool log_main_spawned(struct MainArguments arguments) {
 }
 
 bool log_student_spawned(struct StudentArguments arguments) {
-  return logger("SPAWNED STUDENT\tK:%d T:%d N:%d\n", arguments.k, arguments.t, arguments.n);
+  return logger("Spawned student\tK:%d N:%d T:%d\n", arguments.k, arguments.n,
+                arguments.t);
 }

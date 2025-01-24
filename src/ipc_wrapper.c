@@ -20,16 +20,21 @@ bool create_all_semaphores() {
 
   if (key == -1) return false;
 
-  semid = semget(key, SEMAPHORES_AMOUNT,
-      IPC_CREAT | IPC_EXCL | PERMISSIONS);
+  semid = semget(key, SEMAPHORES_AMOUNT, IPC_CREAT | IPC_EXCL | PERMISSIONS);
 
   if (semid == -1) return false;
 
-  if (semctl(semid, END_SEMAPHORE, SETVAL, END_SEMAPHORE_VALUE) == -1)
+  if (semctl(semid, END_SEMAPHORE, SETVAL, END_SEMAPHORE_VALUE) == -1) {
     return false;
+  }
 
-  if (semctl(semid, DEAN_SEMAPHORE, SETVAL, DEAN_SEMAPHORE_VALUE) == -1)
+  if (semctl(semid, DEAN_SEMAPHORE, SETVAL, DEAN_SEMAPHORE_VALUE) == -1) {
     return false;
+  }
+
+  if (semctl(semid, LOGGER_SEMAPHORE, SETVAL, LOGGER_SEMAPHORE_VALUE) == -1) {
+    return false;
+  }
 
   return true;
 }
@@ -85,7 +90,7 @@ bool create_all_shared_memory() {
   if (key == -1) return false;
 
   return shmget(key, DEAN_SHARED_MEMORY_SIZE,
-      IPC_CREAT | IPC_EXCL | PERMISSIONS) != -1;
+                IPC_CREAT | IPC_EXCL | PERMISSIONS) != -1;
 }
 
 bool remove_all_shared_memory() {
