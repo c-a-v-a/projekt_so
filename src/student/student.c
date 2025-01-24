@@ -12,6 +12,7 @@
 #include "../my_shm.h"
 
 volatile sig_atomic_t CLEANUP = 0;
+static const int RETAKER_PROBABILITY = 5;
 
 void signal_handler(int signal) {
   if (signal == SIGUSR1 && CLEANUP == 0) {

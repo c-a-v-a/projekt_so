@@ -21,4 +21,7 @@ bool students_runner(int k, int* ns, int t);
 void signal_handler(int signal);
 bool handle_signal();
 
+char* int_to_str(int x);
+char* int_arr_to_str(int* xs, ssize_t n);
+
 #endif

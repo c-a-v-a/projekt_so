@@ -7,7 +7,7 @@ OBJDIR=./obj
 BINDIR=./bin
 SRCDIR=./src
 
-_OBJ_MAIN=main.o defaults.o str_creator.o argprinter.o cli_parser.o ipc_wrapper.o
+_OBJ_MAIN=main.o logger.o cli_parser.o ipc_wrapper.o
 OBJ_MAIN=$(patsubst %,$(OBJDIR)/%,$(_OBJ_MAIN))
 _OBJ_STUDENT=student.o argparser.o argprinter.o argvalidator.o defaults.o ipc_wrapper.o
 OBJ_STUDENT=$(patsubst %,$(OBJDIR)/%,$(_OBJ_STUDENT))

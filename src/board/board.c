@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "../argparser.h"
@@ -10,6 +11,11 @@
 #include "../argvalidator.h"
 
 volatile sig_atomic_t CLEANUP = 0;
+
+static const int BOARD_MAX_STUDENTS = 3;
+static const float GRADES[] = {2.0, 3.0, 3.5, 4.0, 4.5, 5.0};
+static const ssize_t GRADES_LEN = 6;
+static const int GRADES_PROBABILITY[] = {5, 15, 30, 30, 15, 5};
 
 void* board_member(void* arg) {
   int* x = (int*)arg;

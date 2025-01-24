@@ -2,3 +2,4 @@ obj/
 bin/
 semaphores
 *_shm
+log.txt
