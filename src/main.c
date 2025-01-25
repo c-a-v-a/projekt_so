@@ -17,14 +17,13 @@
 #include "ipc_wrapper.h"
 #include "logger.h"
 
-volatile sig_atomic_t SIGNALED = 0;
+volatile pid_t dean = -1;
 
 int main(int argc, char** argv) {
   // Command line arguments
   struct MainArguments arguments = initial_main();
 
   // Children pid's
-  pid_t dean;
   pid_t boards[] = {-1, -1};
 
   // Semaphores
@@ -153,22 +152,17 @@ int main(int argc, char** argv) {
     sem_post(semaphore_id, PGID_SEMAPHORE, 0);
   }
 
-  // Waiting
-  //logger(MAIN_PREFIX, "Waiting for students\n");
-
   while (student_count < all_students) {
     if (waitpid(-(*pgid), NULL, 0) > 0) student_count++;
   }
 
   sem_post(semaphore_id, END_SEMAPHORE, 0);
-  logger(MAIN_PREFIX, "Student finished\n");
-  logger(MAIN_PREFIX, "Waiting for boards\n");
+  logger(MAIN_PREFIX, "Students finished\n");
 
   while (waitpid(boards[0], NULL, 0) > 0) {}
   while (waitpid(boards[1], NULL, 0) > 0) {}
 
   logger(MAIN_PREFIX, "Boards finished\n");
-  logger(MAIN_PREFIX, "Waiting for dean\n");
 
   while (waitpid(dean, NULL, 0) > 0) {}
 
@@ -308,11 +302,8 @@ bool attach_handler() {
 }
 
 void signal_handler(int signal) {
-  if (signal == SIGUSR1 && SIGNALED == 0) {
-    printf("MAIN: SIGUSR1\n");
-
-    SIGNALED = 1;
-    kill(0, SIGUSR1);
+  if (signal == SIGUSR1 && dean != -1) {
+    kill(dean, SIGUSR1);
   }
 }
 

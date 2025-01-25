@@ -12,8 +12,6 @@
 #include "../ipc_wrapper.h"
 #include "../logger.h"
 
-volatile sig_atomic_t CLEANUP = 0;
-
 int main(int argc, char** argv) {
   struct DeanArguments args = initial_dean();
   int dean_shmid = get_dean_shmid();
@@ -70,8 +68,10 @@ bool attach_handler() {
 }
 
 void signal_handler(int signal) {
-  if (signal == SIGUSR1 && CLEANUP == 0) {
-    printf("DEAN: SIGUSR1\n");
-    CLEANUP = 1;
+  if (signal == SIGUSR1) {
+    int pgid_shmid = get_pgid_shmid();
+    pid_t* pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
+    logger(DEAN_PREFIX, "Dean sent evacuation signal\n");
+    kill(-(*pgid), SIGUSR1);
   }
 }

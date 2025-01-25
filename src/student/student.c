@@ -12,8 +12,6 @@
 #include "../ipc_wrapper.h"
 #include "../logger.h"
 
-volatile sig_atomic_t CLEANUP = 0;
-
 int main(int argc, char** argv) {
   struct StudentArguments args = initial_student();
   int semaphore_id = get_semid();
@@ -129,8 +127,8 @@ bool attach_handler() {
 }
 
 void signal_handler(int signal) {
-  if (signal == SIGUSR1 && CLEANUP == 0) {
-    printf("STUDENT: SIGUSR1\n");
+  if (signal == SIGUSR1) {
+    logger(STUDENT_PREFIX, "Evacuation\n");
     exit(EXIT_SUCCESS);
   }
 }
