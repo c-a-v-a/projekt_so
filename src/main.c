@@ -20,16 +20,26 @@
 volatile sig_atomic_t SIGNALED = 0;
 
 int main(int argc, char** argv) {
+  // Command line arguments
   struct MainArguments arguments = initial_main();
+
+  // Children pid's
   pid_t dean;
   pid_t boards[] = {-1, -1};
+
+  // Semaphores
   int semaphore_id;
-  int all_student = 0;
+
+  // Shared memory
   int pgid_shmid;
   pid_t* pgid;
 
+  int all_students = 0;
+  int student_count = 0;
+
   srand(getpid());
 
+  // Parse main arguments
   if (!parse_main(argc, argv, &arguments)) {
     perror("Main error. Failed to parse arguments");
 
@@ -59,6 +69,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  // System V structures creation
   if (!create_all_semaphores()) {
     perror("Main error. Failed to create semaphores");
     cleanup(&arguments);
@@ -80,8 +91,8 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  // Linking semaphore
   semaphore_id = get_semid();
-
   if (semaphore_id == -1) {
     perror("Main error. Failed to connect to semaphores");
     cleanup(&arguments);
@@ -89,10 +100,25 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  // Linking shared memory
+  pgid_shmid = get_pgid_shmid();
+  pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
+
+  if (pgid_shmid == -1 || pgid == (pid_t*)-1) {
+    perror("Main error. Failed to attach to shared memory");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
+  }
+
+  *pgid = 0;
+  sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+
   if (!log_main_spawned(arguments)) {
     perror("Main error. Failed to log program state");
   }
 
+  // Spawning children
   if (!dean_runner(arguments.k, &dean)) {
     perror("Main error. Failed to spawn dean process");
     cleanup(&arguments);
@@ -107,19 +133,6 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  pgid_shmid = get_pgid_shmid();
-  pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
-
-  if (pgid_shmid == -1 || pgid == (pid_t*)-1) {
-    perror("Main error. Failed to attach to shared memory");
-    cleanup(&arguments);
-
-    return EXIT_FAILURE;
-  }
-
-  *pgid = 0;
-  sem_post(semaphore_id, PGID_SEMAPHORE, 0);
-
   if (!students_runner(arguments.k, arguments.ns, arguments.t)) {
     perror("Main error. Failed to spawn student process");
     cleanup(&arguments);
@@ -128,8 +141,9 @@ int main(int argc, char** argv) {
   }
   
   for (ssize_t i = 0; i < arguments.ns_len; i++)
-    all_student += arguments.ns[i];
+    all_students += arguments.ns[i];
 
+  // Getting student's process group
   while (1) {
     sem_wait(semaphore_id, PGID_SEMAPHORE, 0);
     if (*pgid != 0) {
@@ -137,29 +151,31 @@ int main(int argc, char** argv) {
       break;
     }
     sem_post(semaphore_id, PGID_SEMAPHORE, 0);
-    sleep(1);
   }
 
+  // Waiting
   logger(MAIN_PREFIX, "Waiting for students\n");
-  int count = 0;
-  while (count < all_student) {
-    if (waitpid(-(*pgid), NULL, 0) > 0) count++;
+
+  while (student_count < all_students) {
+    if (waitpid(-(*pgid), NULL, 0) > 0) student_count++;
   }
 
   logger(MAIN_PREFIX, "Student finished\n");
-
   logger(MAIN_PREFIX, "Waiting for boards\n");
+
   while (waitpid(boards[0], NULL, 0) > 0) {}
   while (waitpid(boards[1], NULL, 0) > 0) {}
+
   logger(MAIN_PREFIX, "Boards finished\n");
   logger(MAIN_PREFIX, "Waiting for dean\n");
+
   while (waitpid(dean, NULL, 0) > 0) {}
+
   logger(MAIN_PREFIX, "Dean finished\n");
 
   if (shmdt(pgid) == -1) {
     perror("Main error. Failed to detach shared memory");
   }
-
   cleanup(&arguments);
 
   while (wait(NULL) > 0);
@@ -272,8 +288,6 @@ bool students_runner(int k, int* ns, int t) {
           exit(EXIT_FAILURE);
         }
       }
-
-      sleep(1);
     }
   }
 

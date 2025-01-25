@@ -33,7 +33,7 @@ static const char SEMAPHORES_FILE[] = "./semaphores";
 /**
  * Amount of semaphores in the *SEMAPHORES_FILE*.
  */
-static const int SEMAPHORES_AMOUNT = 4;
+static const int SEMAPHORES_AMOUNT = 6;
 
 /**
  * Constants providing values used in constructing *sembuf* operation structure.
@@ -49,6 +49,8 @@ static const unsigned short END_SEMAPHORE = 0;
 static const unsigned short DEAN_SEMAPHORE = 1;
 static const unsigned short LOGGER_SEMAPHORE = 2;
 static const unsigned short PGID_SEMAPHORE = 3;
+static const unsigned short BOARD_ROOM_A_SEMAPHORE = 4;
+static const unsigned short BOARD_ROOM_B_SEMAPHORE = 5;
 
 /**
  * Initial value of the semaphores.
@@ -57,6 +59,8 @@ static const unsigned short END_SEMAPHORE_VALUE = 0;
 static const unsigned short DEAN_SEMAPHORE_VALUE = 0;
 static const unsigned short LOGGER_SEMAPHORE_VALUE = 1;
 static const unsigned short PGID_SEMAPHORE_VALUE = 0;
+static const unsigned short BOARD_ROOM_A_SEMAPHORE_VALUE = 3;
+static const unsigned short BOARD_ROOM_B_SEMAPHORE_VALUE = 3;
 
 /**
  * Files to which shared memory will be linked to.

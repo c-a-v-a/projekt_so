@@ -12,6 +12,8 @@ static const char BOARD_PREFIX[] = "\033[31m";
 static const char DEAN_PREFIX[] = "\033[32m";
 static const char MAIN_PREFIX[] = "\033[33m";
 static const char STUDENT_PREFIX[] = "\033[34m";
+static const char BOARD_ROOM_PREFIX[] = "\033[35m";
+static const char BOARD_ANSWER_PREFIX[] = "\033[36m";
 static const char SUFFIX[] = "\033[0m";
 
 bool open_log_file();

@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
   sem_wait(semaphore_id, DEAN_SEMAPHORE, 0);
   k = (int*)shmat(dean_shmid, NULL, 0);
   sem_post(semaphore_id, DEAN_SEMAPHORE, 0);
-  logger(STUDENT_PREFIX, "Student (%d,%d) recieved message %d\n", args.k, args.n, *k);
 
   if (*k != args.k) {
     shmdt(k);
@@ -61,7 +60,18 @@ int main(int argc, char** argv) {
     return EXIT_SUCCESS;
   }
 
-  // go to board room
+  sem_wait(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
+  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board A room\n", args.k, args.n);
+  sleep(rand() % 10);
+  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) leaved board A room\n", args.k, args.n);
+  sem_post(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
+
+  sem_wait(semaphore_id, BOARD_ROOM_B_SEMAPHORE, 0);
+  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board B room\n", args.k, args.n);
+  sleep(rand() % 10);
+  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) leaved board B room\n", args.k, args.n);
+  sem_post(semaphore_id, BOARD_ROOM_B_SEMAPHORE, 0);
+
   // go to board if already has one grade go to second board
   // get questions
   // wait
