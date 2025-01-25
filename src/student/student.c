@@ -20,6 +20,14 @@ int main(int argc, char** argv) {
   pid_t* pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
   int* k;
   int msgqid;
+  bool retaker = false;
+  int grade = -1;
+
+  srand(getpid());
+
+  retaker = rand() % 100 < RETAKER_PROBABILITY;
+
+  if (retaker) grade = GRADES[rand() % 6];
 
   if (!parse_student(argc, argv, &args)) {
     perror("Student error. Failed to parse arguments");
@@ -63,30 +71,34 @@ int main(int argc, char** argv) {
   // BOARD A
   sem_wait(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
 
-  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board A room\n", args.k, args.n);
+  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board A room\n", args.k, args.n, retaker);
 
   sem_wait(semaphore_id, BOARD_A_SEMAPHORE, 0);
-
   msgqid = get_board_a_msgqid();
   struct Message message;
-  message.mtype = MESSAGE_ASK;
 
-  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
-  msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_QUESTIONS, 0);
+  if (retaker) {
+    message.mtype = MESSAGE_RETAKER;
+    msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+    msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
+  } else {
+    message.mtype = MESSAGE_ASK;
 
-  message.mtype = MESSAGE_ANSWERS;
+    msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+    msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_QUESTIONS, 0);
 
-  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
-  msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
+    sleep(args.t);
+
+    message.mtype = MESSAGE_ANSWERS;
+
+    msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+    msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
+  }
 
   logger(BOARD_ROOM_PREFIX, "Student (%d,%d) got grade\n", args.k, args.n);
-
   sem_post(semaphore_id, BOARD_A_SEMAPHORE, 0);
 
-  sleep(1);
-
-  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) leaved board A room\n", args.k, args.n);
-
+  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) left board A room\n", args.k, args.n);
   sem_post(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
 
   // BOARD B
@@ -106,7 +118,6 @@ int main(int argc, char** argv) {
   // go to board again
   // exit
 
-  srand(getpid());
   sleep(rand() % 10);
 
   logger(STUDENT_PREFIX, "Student (%d,%d) finished exam\n", args.k, args.n);

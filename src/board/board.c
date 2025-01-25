@@ -67,15 +67,22 @@ int main(int argc, char** argv) {
       case MESSAGE_ASK:
         message.mtype = MESSAGE_QUESTIONS;
         msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
         break;
       case MESSAGE_ANSWERS:
         message.mtype = MESSAGE_GRADE;
         msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
         break;
       case MESSAGE_RETAKER:
+        message.mtype = MESSAGE_GRADE;
+        msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
         break;
       default:
-        return EXIT_FAILURE;
+        errno = EINVAL;
+        perror("Board error. Bad message type");
+        break;
     }
 
     sleep(1);
