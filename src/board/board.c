@@ -16,11 +16,12 @@ volatile sig_atomic_t CLEANUP = 0;
 
 int main(int argc, char** argv) {
   struct BoardArguments args = initial_board();
-  int semaphore_id = get_semid();
   pthread_t t1, t2, t3;
   int a = 1;
   int b = 2;
   int c = 3;
+
+  setpgid(0, 0);
 
   if (!parse_board(argc, argv, &args)) {
     perror("Board error. Failed to parse arguments");
@@ -38,11 +39,9 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  sem_wait(semaphore_id, LOGGER_SEMAPHORE, 0);
   if (!log_board_spawned(args)) {
     perror("Board error. Failed to log program state");
   }
-  sem_post(semaphore_id, LOGGER_SEMAPHORE, 0);
 
   pthread_create(&t1, NULL, board_member, (void*)&a);
   pthread_create(&t2, NULL, board_member, (void*)&b);

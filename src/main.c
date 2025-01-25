@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/shm.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -22,10 +23,11 @@ int main(int argc, char** argv) {
   struct MainArguments arguments = initial_main();
   pid_t dean;
   pid_t boards[] = {-1, -1};
-  pid_t student_leader = -1;  // pid for the student group
   int semaphore_id;
+  int pgid_shmid;
+  pid_t* pgid;
 
-  srand(time(NULL));
+  srand(getpid());
 
   if (!parse_main(argc, argv, &arguments)) {
     perror("Main error. Failed to parse arguments");
@@ -86,11 +88,9 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  sem_wait(semaphore_id, LOGGER_SEMAPHORE, 0);
   if (!log_main_spawned(arguments)) {
     perror("Main error. Failed to log program state");
   }
-  sem_post(semaphore_id, LOGGER_SEMAPHORE, 0);
 
   if (!dean_runner(arguments.k, &dean)) {
     perror("Main error. Failed to spawn dean process");
@@ -106,18 +106,40 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (!students_runner(arguments.k, arguments.ns, arguments.t,
-                       &student_leader)) {
+  if (!students_runner(arguments.k, arguments.ns, arguments.t)) {
     perror("Main error. Failed to spawn student process");
     cleanup(&arguments);
 
     return EXIT_FAILURE;
   }
 
-  sleep(1);
-  printf("%d %d %d %d", dean, boards[0], boards[1], student_leader);
+  pgid_shmid = get_pgid_shmid();
+  pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
+
+  if (pgid_shmid == -1 || pgid == (pid_t*)-1) {
+    perror("Main error. Failed to attach to shared memory");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
+  }
+
+  *pgid = 0;
+  sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+
+  while (1) {
+    sem_wait(semaphore_id, PGID_SEMAPHORE, 0);
+    if (*pgid != 0) break;
+    sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+    sleep(1);
+  }
+
+  if (shmdt(pgid) == -1) {
+    perror("Main error. Failed to detach shared memory");
+  }
 
   cleanup(&arguments);
+
+  while (wait(NULL) > 0);
 
   return EXIT_SUCCESS;
 }
@@ -187,7 +209,7 @@ bool board_runner(int* ns, ssize_t ns_len, pid_t* boards) {
   return true;
 }
 
-bool students_runner(int k, int* ns, int t, pid_t* student_leader) {
+bool students_runner(int k, int* ns, int t) {
   for (int i = 0; i < k; i++) {
     const int n = ns[i];
 
@@ -213,13 +235,6 @@ bool students_runner(int k, int* ns, int t, pid_t* student_leader) {
           exit(EXIT_FAILURE);
         }
 
-        if (*student_leader == -1) *student_leader = getpid();
-
-        if (setpgid(0, *student_leader) == -1) {
-          perror("Student error. Failed to set pgid");
-          exit(EXIT_FAILURE);
-        }
-
         if (execl("./bin/student", "student", "-k", k_str, "-n", n_str, "-t",
                   t_str, NULL) == -1) {
           perror("Student error. Failed to run process");
@@ -229,8 +244,6 @@ bool students_runner(int k, int* ns, int t, pid_t* student_leader) {
 
           exit(EXIT_FAILURE);
         }
-      } else if (*student_leader == -1) {
-        *student_leader = getpid();
       }
     }
   }

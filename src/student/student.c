@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/shm.h>
 #include <unistd.h>
 
 #include "../cli_parser.h"
@@ -15,6 +16,8 @@ volatile sig_atomic_t CLEANUP = 0;
 int main(int argc, char** argv) {
   struct StudentArguments args = initial_student();
   int semaphore_id = get_semid();
+  int pgid_shmid = get_pgid_shmid();
+  pid_t* pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
 
   if (!parse_student(argc, argv, &args)) {
     perror("Student error. Failed to parse arguments");
@@ -32,11 +35,16 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  sem_wait(semaphore_id, LOGGER_SEMAPHORE, 0);
+  sem_wait(semaphore_id, PGID_SEMAPHORE, 0);
+  if (*pgid == 0) {
+    *pgid = getpid();
+  }
+  setpgid(0, *pgid);
+  sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+
   if (!log_student_spawned(args)) {
     perror("Student error. Failed to log program state");
   }
-  sem_post(semaphore_id, LOGGER_SEMAPHORE, 0);
 
   // get dean k
   // go to board room
@@ -47,7 +55,8 @@ int main(int argc, char** argv) {
   // get grades
   // go to board again
   // exit
-
+  srand(getpid());
+  sleep(rand() % 10);
   return EXIT_SUCCESS;
 }
 

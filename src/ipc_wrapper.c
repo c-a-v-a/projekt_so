@@ -36,6 +36,10 @@ bool create_all_semaphores() {
     return false;
   }
 
+  if (semctl(semid, PGID_SEMAPHORE, SETVAL, PGID_SEMAPHORE_VALUE) == -1) {
+    return false;
+  }
+
   return true;
 }
 
@@ -78,19 +82,26 @@ bool sem_post(int semid, short semaphore, short flags) {
 bool create_all_shared_memory() {
   remove_all_shared_memory();
 
-  FILE* shm_file = fopen(DEAN_SHARED_MEMORY_FILE, "w");
+  FILE* shm_file;
   key_t key;
+  bool result = true;
 
-  if (shm_file == NULL) return false;
+  for (size_t i = 0; i < SHARED_MEMORY_FILES_SIZE; i++) {
+    shm_file = fopen(SHARED_MEMORY_FILES[i], "w");
 
-  if (fclose(shm_file) != 0) return false;
+    if (shm_file == NULL) return false;
 
-  key = ftok(DEAN_SHARED_MEMORY_FILE, PROJECT_ID);
+    if (fclose(shm_file) != 0) return false;
 
-  if (key == -1) return false;
+    key = ftok(SHARED_MEMORY_FILES[i], PROJECT_ID);
 
-  return shmget(key, DEAN_SHARED_MEMORY_SIZE,
-                IPC_CREAT | IPC_EXCL | PERMISSIONS) != -1;
+    if (key == -1) return false;
+
+    result = result && shmget(key, SHARED_MEMORY_SIZES[i],
+                              IPC_CREAT | IPC_EXCL | PERMISSIONS) != -1;
+  }
+
+  return result;
 }
 
 bool remove_all_shared_memory() {
@@ -103,6 +114,14 @@ bool remove_all_shared_memory() {
 
   if (remove(DEAN_SHARED_MEMORY_FILE) == -1) return false;
 
+  shmid = get_pgid_shmid();
+
+  if (shmid == -1) return false;
+
+  result = shmctl(shmid, IPC_RMID, NULL) != -1;
+
+  if (remove(PGID_SHARED_MEMORY_FILE) == -1) return false;
+
   return result;
 }
 
@@ -113,6 +132,17 @@ int get_dean_shmid() {
   if (key == -1) return shmid;
 
   shmid = shmget(key, DEAN_SHARED_MEMORY_SIZE, PERMISSIONS);
+
+  return shmid;
+}
+
+int get_pgid_shmid() {
+  int shmid = -1;
+  key_t key = ftok(PGID_SHARED_MEMORY_FILE, PROJECT_ID);
+
+  if (key == -1) return shmid;
+
+  shmid = shmget(key, PGID_SHARED_MEMORY_SIZE, PERMISSIONS);
 
   return shmid;
 }
