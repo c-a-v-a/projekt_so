@@ -154,12 +154,13 @@ int main(int argc, char** argv) {
   }
 
   // Waiting
-  logger(MAIN_PREFIX, "Waiting for students\n");
+  //logger(MAIN_PREFIX, "Waiting for students\n");
 
   while (student_count < all_students) {
     if (waitpid(-(*pgid), NULL, 0) > 0) student_count++;
   }
 
+  sem_post(semaphore_id, END_SEMAPHORE, 0);
   logger(MAIN_PREFIX, "Student finished\n");
   logger(MAIN_PREFIX, "Waiting for boards\n");
 

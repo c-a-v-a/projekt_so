@@ -33,7 +33,7 @@ static const char SEMAPHORES_FILE[] = "./semaphores";
 /**
  * Amount of semaphores in the *SEMAPHORES_FILE*.
  */
-static const int SEMAPHORES_AMOUNT = 6;
+static const int SEMAPHORES_AMOUNT = 8;
 
 /**
  * Constants providing values used in constructing *sembuf* operation structure.
@@ -51,6 +51,8 @@ static const unsigned short LOGGER_SEMAPHORE = 2;
 static const unsigned short PGID_SEMAPHORE = 3;
 static const unsigned short BOARD_ROOM_A_SEMAPHORE = 4;
 static const unsigned short BOARD_ROOM_B_SEMAPHORE = 5;
+static const unsigned short BOARD_A_SEMAPHORE = 6;
+static const unsigned short BOARD_B_SEMAPHORE = 7;
 
 /**
  * Initial value of the semaphores.
@@ -61,6 +63,8 @@ static const unsigned short LOGGER_SEMAPHORE_VALUE = 1;
 static const unsigned short PGID_SEMAPHORE_VALUE = 0;
 static const unsigned short BOARD_ROOM_A_SEMAPHORE_VALUE = 3;
 static const unsigned short BOARD_ROOM_B_SEMAPHORE_VALUE = 3;
+static const unsigned short BOARD_A_SEMAPHORE_VALUE = 1;
+static const unsigned short BOARD_B_SEMAPHORE_VALUE = 1;
 
 /**
  * Files to which shared memory will be linked to.
@@ -89,19 +93,12 @@ static const size_t MESSAGE_QUEUE_FILES_SIZE = 2;
 /**
  * Types of message queue messages.
  */
-static const long MESSAGE_EMPTY = 1;
+static const long MESSAGE_ASK = 1;
 static const long MESSAGE_QUESTIONS = 2;
 static const long MESSAGE_ANSWERS = 3;
 static const long MESSAGE_GRADE = 4;
 static const long MESSAGE_RETAKER = 5;
 static const long MESSAGE_SEND_TO_DEAN = 6;
-
-/**
- * Size of the message structure (withour message type field).
- *
- * @see Message
- */
-static const size_t MESSAGE_SIZE = 16;
 
 /**
  * Type for the messages that will be send over the message queue.
@@ -113,16 +110,23 @@ struct Message {
    * Since message will be send only to and from *board* process, each slot is
    * used by one thread of the board process.
    */
-  char slot1[4];
-  char slot2[4];
-  char slot3[4];
+  float slot1;
+  float slot2;
+  float slot3;
 
   /**
    * Field used for final grade - that is an average of 3 grades from slot 1, 2
    * and 3 - and student grade if student happes to retake the exam.
    */
-  char total[4];
+  float total;
 };
+
+/**
+ * Size of the message structure (withour message type field).
+ *
+ * @see Message
+ */
+static const size_t MESSAGE_SIZE = sizeof(struct Message) - sizeof(long);
 
 /**
  * Creates all semaphores that will be used in our system. It also removes

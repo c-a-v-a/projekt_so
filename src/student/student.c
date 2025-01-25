@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/msg.h>
 #include <sys/shm.h>
 #include <unistd.h>
 
@@ -20,6 +21,7 @@ int main(int argc, char** argv) {
   int dean_shmid = get_dean_shmid();
   pid_t* pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
   int* k;
+  int msgqid;
 
   if (!parse_student(argc, argv, &args)) {
     perror("Student error. Failed to parse arguments");
@@ -60,17 +62,43 @@ int main(int argc, char** argv) {
     return EXIT_SUCCESS;
   }
 
+  // BOARD A
   sem_wait(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
+
   logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board A room\n", args.k, args.n);
-  sleep(rand() % 10);
+
+  sem_wait(semaphore_id, BOARD_A_SEMAPHORE, 0);
+
+  msgqid = get_board_a_msgqid();
+  struct Message message;
+  message.mtype = MESSAGE_ASK;
+
+  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+  msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_QUESTIONS, 0);
+
+  message.mtype = MESSAGE_ANSWERS;
+
+  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+  msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
+
+  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) got grade\n", args.k, args.n);
+
+  sem_post(semaphore_id, BOARD_A_SEMAPHORE, 0);
+
+  sleep(1);
+
   logger(BOARD_ROOM_PREFIX, "Student (%d,%d) leaved board A room\n", args.k, args.n);
+
   sem_post(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
 
+  // BOARD B
+  /*
   sem_wait(semaphore_id, BOARD_ROOM_B_SEMAPHORE, 0);
   logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board B room\n", args.k, args.n);
   sleep(rand() % 10);
   logger(BOARD_ROOM_PREFIX, "Student (%d,%d) leaved board B room\n", args.k, args.n);
   sem_post(semaphore_id, BOARD_ROOM_B_SEMAPHORE, 0);
+  */
 
   // go to board if already has one grade go to second board
   // get questions

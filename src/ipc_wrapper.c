@@ -48,6 +48,14 @@ bool create_all_semaphores() {
     return false;
   }
 
+  if (semctl(semid, BOARD_A_SEMAPHORE, SETVAL, BOARD_A_SEMAPHORE_VALUE) == -1) {
+    return false;
+  }
+
+  if (semctl(semid, BOARD_B_SEMAPHORE, SETVAL, BOARD_B_SEMAPHORE_VALUE) == -1) {
+    return false;
+  }
+
   return true;
 }
 

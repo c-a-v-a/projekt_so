@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/msg.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -20,6 +21,9 @@ int main(int argc, char** argv) {
   int a = 1;
   int b = 2;
   int c = 3;
+  int msgqid;
+  struct Message message;
+  int semaphore_id = get_semid();
 
   setpgid(0, 0);
 
@@ -41,6 +45,40 @@ int main(int argc, char** argv) {
 
   if (!log_board_spawned(args)) {
     perror("Board error. Failed to log program state");
+  }
+
+  if (args.board_name == 'A') {
+    msgqid = get_board_a_msgqid();
+  } else {
+    msgqid = get_board_b_msgqid();
+  }
+
+  while (1) {
+    if (sem_wait(semaphore_id, END_SEMAPHORE, IPC_NOWAIT)) {
+      sem_post(semaphore_id, END_SEMAPHORE, IPC_NOWAIT);
+      break;
+    }
+
+    if (msgrcv(msgqid, &message, MESSAGE_SIZE, 0, IPC_NOWAIT) == -1) {
+      continue;
+    }
+
+    switch(message.mtype) {
+      case MESSAGE_ASK:
+        message.mtype = MESSAGE_QUESTIONS;
+        msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+        break;
+      case MESSAGE_ANSWERS:
+        message.mtype = MESSAGE_GRADE;
+        msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+        break;
+      case MESSAGE_RETAKER:
+        break;
+      default:
+        return EXIT_FAILURE;
+    }
+
+    sleep(1);
   }
 
   pthread_create(&t1, NULL, board_member, (void*)&a);
