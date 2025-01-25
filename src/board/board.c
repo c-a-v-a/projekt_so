@@ -89,6 +89,9 @@ int main(int argc, char** argv) {
   pthread_join(t2, NULL);
   pthread_join(t3, NULL);
 
+  message.mtype = MESSAGE_SEND_TO_DEAN;
+  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
   return EXIT_SUCCESS;
 }
 

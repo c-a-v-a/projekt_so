@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/msg.h>
 #include <sys/shm.h>
 #include <unistd.h>
 
@@ -18,6 +19,9 @@ int main(int argc, char** argv) {
   int dean_shmid = get_dean_shmid();
   int semaphore_id = get_semid();
   int* k = (int*)shmat(dean_shmid, NULL, 0);
+  int board_a_msgqid = get_board_a_msgqid();
+  int board_b_msgqid = get_board_b_msgqid();
+  struct Message message;
 
   setpgid(0, 0);
   srand(getpid());
@@ -47,7 +51,8 @@ int main(int argc, char** argv) {
 
   logger(DEAN_PREFIX, "Sent message %d\n", *k);
 
-  sleep(2);
+  msgrcv(board_a_msgqid, &message, MESSAGE_SIZE, MESSAGE_SEND_TO_DEAN, 0);
+  msgrcv(board_b_msgqid, &message, MESSAGE_SIZE, MESSAGE_SEND_TO_DEAN, 0);
 
   return EXIT_SUCCESS;
 }
