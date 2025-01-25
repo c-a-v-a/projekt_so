@@ -15,8 +15,12 @@ volatile sig_atomic_t CLEANUP = 0;
 
 int main(int argc, char** argv) {
   struct DeanArguments args = initial_dean();
+  int dean_shmid = get_dean_shmid();
+  int semaphore_id = get_semid();
+  int* k = (int*)shmat(dean_shmid, NULL, 0);
 
   setpgid(0, 0);
+  srand(getpid());
 
   if (!parse_dean(argc, argv, &args)) {
     perror("Dean error. Failed to parse arguments");
@@ -38,7 +42,12 @@ int main(int argc, char** argv) {
     perror("Dean error. Failed to log program state");
   }
 
-  sleep(10);
+  *k = rand() % args.k;
+  sem_post(semaphore_id, DEAN_SEMAPHORE, 0);
+
+  logger(DEAN_PREFIX, "Sent message %d\n", *k);
+
+  sleep(2);
 
   return EXIT_SUCCESS;
 }

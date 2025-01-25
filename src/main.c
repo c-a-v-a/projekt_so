@@ -107,13 +107,6 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (!students_runner(arguments.k, arguments.ns, arguments.t)) {
-    perror("Main error. Failed to spawn student process");
-    cleanup(&arguments);
-
-    return EXIT_FAILURE;
-  }
-
   pgid_shmid = get_pgid_shmid();
   pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
 
@@ -126,6 +119,13 @@ int main(int argc, char** argv) {
 
   *pgid = 0;
   sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+
+  if (!students_runner(arguments.k, arguments.ns, arguments.t)) {
+    perror("Main error. Failed to spawn student process");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
+  }
   
   for (ssize_t i = 0; i < arguments.ns_len; i++)
     all_student += arguments.ns[i];
@@ -140,12 +140,21 @@ int main(int argc, char** argv) {
     sleep(1);
   }
 
+  logger(MAIN_PREFIX, "Waiting for students\n");
   int count = 0;
   while (count < all_student) {
     if (waitpid(-(*pgid), NULL, 0) > 0) count++;
   }
 
   logger(MAIN_PREFIX, "Student finished\n");
+
+  logger(MAIN_PREFIX, "Waiting for boards\n");
+  while (waitpid(boards[0], NULL, 0) > 0) {}
+  while (waitpid(boards[1], NULL, 0) > 0) {}
+  logger(MAIN_PREFIX, "Boards finished\n");
+  logger(MAIN_PREFIX, "Waiting for dean\n");
+  while (waitpid(dean, NULL, 0) > 0) {}
+  logger(MAIN_PREFIX, "Dean finished\n");
 
   if (shmdt(pgid) == -1) {
     perror("Main error. Failed to detach shared memory");
@@ -237,7 +246,7 @@ bool students_runner(int k, int* ns, int t) {
       if (pid == -1) {
         return false;
       } else if (pid == 0) {
-        char* k_str = int_to_str(i + 1);
+        char* k_str = int_to_str(i);
         char* n_str = int_to_str(j);
         char* t_str = int_to_str(t);
 
@@ -293,7 +302,7 @@ void signal_handler(int signal) {
 }
 
 char* int_to_str(int x) {
-  size_t str_size = (size_t)((ceil(log10(x)) + 2) * sizeof(char));
+  size_t str_size = (size_t)((ceil(log10(x + 1)) + 2) * sizeof(char));
   char* str = malloc(str_size);
 
   if (str == NULL) return str;

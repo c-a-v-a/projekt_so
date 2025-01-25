@@ -17,7 +17,9 @@ int main(int argc, char** argv) {
   struct StudentArguments args = initial_student();
   int semaphore_id = get_semid();
   int pgid_shmid = get_pgid_shmid();
+  int dean_shmid = get_dean_shmid();
   pid_t* pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
+  int* k;
 
   if (!parse_student(argc, argv, &args)) {
     perror("Student error. Failed to parse arguments");
@@ -44,9 +46,21 @@ int main(int argc, char** argv) {
     *pgid = getpid();
   }
   setpgid(0, *pgid);
+  shmdt(pgid);
   sem_post(semaphore_id, PGID_SEMAPHORE, 0);
 
-  // get dean k
+  sem_wait(semaphore_id, DEAN_SEMAPHORE, 0);
+  k = (int*)shmat(dean_shmid, NULL, 0);
+  sem_post(semaphore_id, DEAN_SEMAPHORE, 0);
+  logger(STUDENT_PREFIX, "Student (%d,%d) recieved message %d\n", args.k, args.n, *k);
+
+  if (*k != args.k) {
+    shmdt(k);
+    logger(STUDENT_PREFIX, "Student (%d,%d) exits. Wrong faculty\n", args.k, args.n);
+
+    return EXIT_SUCCESS;
+  }
+
   // go to board room
   // go to board if already has one grade go to second board
   // get questions
@@ -58,6 +72,9 @@ int main(int argc, char** argv) {
 
   srand(getpid());
   sleep(rand() % 10);
+
+  logger(STUDENT_PREFIX, "Student (%d,%d) finished exam\n", args.k, args.n);
+
   return EXIT_SUCCESS;
 }
 
