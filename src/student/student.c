@@ -35,16 +35,16 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  if (!log_student_spawned(args)) {
+    perror("Student error. Failed to log program state");
+  }
+
   sem_wait(semaphore_id, PGID_SEMAPHORE, 0);
   if (*pgid == 0) {
     *pgid = getpid();
   }
   setpgid(0, *pgid);
   sem_post(semaphore_id, PGID_SEMAPHORE, 0);
-
-  if (!log_student_spawned(args)) {
-    perror("Student error. Failed to log program state");
-  }
 
   // get dean k
   // go to board room
@@ -55,6 +55,7 @@ int main(int argc, char** argv) {
   // get grades
   // go to board again
   // exit
+
   srand(getpid());
   sleep(rand() % 10);
   return EXIT_SUCCESS;

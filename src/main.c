@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
   pid_t dean;
   pid_t boards[] = {-1, -1};
   int semaphore_id;
+  int all_student = 0;
   int pgid_shmid;
   pid_t* pgid;
 
@@ -125,13 +126,26 @@ int main(int argc, char** argv) {
 
   *pgid = 0;
   sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+  
+  for (ssize_t i = 0; i < arguments.ns_len; i++)
+    all_student += arguments.ns[i];
 
   while (1) {
     sem_wait(semaphore_id, PGID_SEMAPHORE, 0);
-    if (*pgid != 0) break;
+    if (*pgid != 0) {
+      sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+      break;
+    }
     sem_post(semaphore_id, PGID_SEMAPHORE, 0);
     sleep(1);
   }
+
+  int count = 0;
+  while (count < all_student) {
+    if (waitpid(-(*pgid), NULL, 0) > 0) count++;
+  }
+
+  logger(MAIN_PREFIX, "Student finished\n");
 
   if (shmdt(pgid) == -1) {
     perror("Main error. Failed to detach shared memory");
@@ -184,6 +198,8 @@ bool dean_runner(int k, pid_t* dean) {
     *dean = pid;
   }
 
+  sleep(1);
+
   return true;
 }
 
@@ -204,6 +220,8 @@ bool board_runner(int* ns, ssize_t ns_len, pid_t* boards) {
     } else {
       boards[i] = pid;
     }
+
+    sleep(1);
   }
 
   return true;
@@ -245,6 +263,8 @@ bool students_runner(int k, int* ns, int t) {
           exit(EXIT_FAILURE);
         }
       }
+
+      sleep(1);
     }
   }
 

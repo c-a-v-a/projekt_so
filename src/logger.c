@@ -10,10 +10,12 @@ bool logger(const char* prefix, char* format, ...) {
   va_list arguments;
   bool result = true;
 
+
   va_start(arguments, format);
   result = result && printf("%s", prefix);
   result = result && vprintf(format, arguments) >= 0;
   result = result && printf("%s", SUFFIX);
+  fflush(stdout);
   va_end(arguments);
 
   return result;
