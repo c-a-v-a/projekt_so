@@ -10,5 +10,6 @@ struct Node {
 }
 
 void add(struct Node* head, int k, int n, float grade_a, float grade_b);
+void free_list(struct Node* head);
 
 #endif
