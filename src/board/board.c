@@ -13,19 +13,17 @@
 #include "../ipc_wrapper.h"
 #include "../logger.h"
 
-volatile sig_atomic_t CLEANUP = 0;
+pthread_mutex_t board_member_mutex;
 
 int main(int argc, char** argv) {
   struct BoardArguments args = initial_board();
   pthread_t t1, t2, t3;
-  int a = 1;
-  int b = 2;
-  int c = 3;
   int msgqid;
-  struct Message message;
   int semaphore_id = get_semid();
+  struct Message message;
 
   setpgid(0, 0);
+  srand(getpid());
 
   if (!parse_board(argc, argv, &args)) {
     perror("Board error. Failed to parse arguments");
@@ -38,11 +36,6 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (!attach_handler()) {
-    perror("Board error. Failed to attach signal handler");
-    return EXIT_FAILURE;
-  }
-
   if (!log_board_spawned(args)) {
     perror("Board error. Failed to log program state");
   }
@@ -52,6 +45,8 @@ int main(int argc, char** argv) {
   } else {
     msgqid = get_board_b_msgqid();
   }
+
+  pthread_mutex_init(&board_member_mutex, NULL);
 
   while (1) {
     if (sem_wait(semaphore_id, END_SEMAPHORE, IPC_NOWAIT)) {
@@ -66,11 +61,35 @@ int main(int argc, char** argv) {
     switch(message.mtype) {
       case MESSAGE_ASK:
         message.mtype = MESSAGE_QUESTIONS;
+        message.slot1 = -1.;
+        message.slot2 = -1.;
+        message.slot3 = -1.;
+
+        pthread_create(&t1, NULL, prepare_questions, (void*)&message);
+        pthread_create(&t2, NULL, prepare_questions, (void*)&message);
+        pthread_create(&t3, NULL, prepare_questions, (void*)&message);
+
+        pthread_join(t1, NULL);
+        pthread_join(t2, NULL);
+        pthread_join(t3, NULL);
+
         msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
 
         break;
       case MESSAGE_ANSWERS:
         message.mtype = MESSAGE_GRADE;
+        message.slot1 = -1.;
+        message.slot2 = -1.;
+        message.slot3 = -1.;
+
+        pthread_create(&t1, NULL, grade, (void*)&message);
+        pthread_create(&t2, NULL, grade, (void*)&message);
+        pthread_create(&t3, NULL, grade, (void*)&message);
+
+        pthread_join(t1, NULL);
+        pthread_join(t2, NULL);
+        pthread_join(t3, NULL);
+
         msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
 
         break;
@@ -88,42 +107,77 @@ int main(int argc, char** argv) {
     sleep(1);
   }
 
-  pthread_create(&t1, NULL, board_member, (void*)&a);
-  pthread_create(&t2, NULL, board_member, (void*)&b);
-  pthread_create(&t3, NULL, board_member, (void*)&c);
-
-  pthread_join(t1, NULL);
-  pthread_join(t2, NULL);
-  pthread_join(t3, NULL);
-
   message.mtype = MESSAGE_SEND_TO_DEAN;
   msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
 
   return EXIT_SUCCESS;
 }
 
-void* board_member(void* arg) {
-  int* x = (int*)arg;
-  printf("I am a board member %d\n", *x);
+void* prepare_questions(void* arg) {
+  struct Message* message = (struct Message*)arg;
+
+  pthread_mutex_lock(&board_member_mutex);
+
+  if (message->slot1 <= 0) {
+    message->slot1 = (float)(rand() % 10 + 1);
+  } else if (message->slot2 <= 0) {
+    message->slot2 = (float)(rand() % 10 + 1);
+  } else if (message->slot3 <= 0) {
+    message->slot3 = (float)(rand() % 10 + 1);
+  }
+
+  pthread_mutex_unlock(&board_member_mutex);
 
   return NULL;
 }
 
-bool attach_handler() {
-  struct sigaction sa;
+void* grade(void* arg) {
+  struct Message* message = (struct Message*)arg;
 
-  sa.sa_handler = signal_handler;
-  sa.sa_flags = 0;
-  sigemptyset(&sa.sa_mask);
+  pthread_mutex_lock(&board_member_mutex);
 
-  if (sigaction(SIGUSR1, &sa, NULL) == -1) return false;
+  if (message->slot1 <= 0) {
+    message->slot1 = get_random_grade();
+  } else if (message->slot2 <= 0) {
+    message->slot2 = get_random_grade();
+  } else if (message->slot3 <= 0) {
+    message->slot3 = get_random_grade();
+  }
 
-  return true;
+  if (message->slot1 > 0 && message->slot2 > 0 && message->slot3 > 0) {
+    if (message->slot1 < 3 || message->slot2 < 3 || message->slot3 < 3) {
+      message->total = 2.;
+    } else {
+      message->total = get_average(message->slot1, message->slot2, message->slot3);
+    }
+  }
+
+  pthread_mutex_unlock(&board_member_mutex);
+
+  return NULL;
 }
 
-void signal_handler(int signal) {
-  if (signal == SIGUSR1 && CLEANUP == 0) {
-    printf("BOARD: SIGUSR1\n");
-    CLEANUP = 1;
+float get_random_grade() {
+  float grade = -1;
+  int probability = rand() % 100 + 1;
+  int i = 0;
+
+  for (; i < GRADES_LEN; i++) {
+    probability -= GRADES_PROBABILITY[i];
+    grade = GRADES[i];
+
+    if (probability <= 0) break;
   }
+  
+  return grade;
+}
+
+float get_average(float x, float y, float z) {
+  float avg = (x + y + z) / 3;
+
+  for (int i = 0; i < GRADES_LEN; i++) {
+    if (GRADES[i] >= avg) return GRADES[i];
+  }
+
+  return -1;
 }

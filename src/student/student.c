@@ -64,8 +64,7 @@ int main(int argc, char** argv) {
   if (*k != args.k) {
     shmdt(k);
     logger(STUDENT_PREFIX, "Student (%d,%d) exits. Wrong faculty\n", args.k, args.n);
-
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
   }
 
   // BOARD A
@@ -80,19 +79,26 @@ int main(int argc, char** argv) {
   if (retaker) {
     message.mtype = MESSAGE_RETAKER;
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
-    msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
   } else {
     message.mtype = MESSAGE_ASK;
 
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
     msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_QUESTIONS, 0);
+    logger(BOARD_ROOM_PREFIX, "Student (%d,%d) recieved questions %.1f,%.1f,%.1f\n",
+        args.k, args.n, message.slot1, message.slot2, message.slot3);
+
+    sem_post(semaphore_id, BOARD_A_SEMAPHORE, 0);
 
     sleep(args.t);
+
+    sem_wait(semaphore_id, BOARD_A_SEMAPHORE, 0);
 
     message.mtype = MESSAGE_ANSWERS;
 
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
     msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
+    logger(BOARD_ROOM_PREFIX, "Student (%d,%d) recieved grades %.1f,%.1f,%.1f total %.1f\n",
+        args.k, args.n, message.slot1, message.slot2, message.slot3, message.total);
   }
 
   logger(BOARD_ROOM_PREFIX, "Student (%d,%d) got grade\n", args.k, args.n);

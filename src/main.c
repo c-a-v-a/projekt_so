@@ -251,7 +251,7 @@ bool students_runner(int k, int* ns, int t) {
   for (int i = 0; i < k; i++) {
     const int n = ns[i];
 
-    for (int j = 1; j <= n; j++) {
+    for (int j = 0; j < n; j++) {
       const pid_t pid = fork();
 
       if (pid == -1) {

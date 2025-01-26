@@ -11,9 +11,10 @@ static const int GRADES_PROBABILITY[] = {5, 15, 30, 30, 15, 5};
 
 int main(int argc, char** argv);
 
-void* board_member(void* arg);
+void* prepare_questions(void* arg);
+void* grade(void* arg);
 
-bool attach_handler();
-void signal_handler(int signal);
+float get_random_grade();
+float get_average(float x, float y, float z);
 
 #endif
