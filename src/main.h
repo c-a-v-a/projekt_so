@@ -83,4 +83,9 @@ char* int_to_str(int x);
  */
 char* int_arr_to_str(int* xs, ssize_t n);
 
+/**
+ * @breif Waits asynchronously for all students to finish.
+ */
+void* student_waiter();
+
 #endif

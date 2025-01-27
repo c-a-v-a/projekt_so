@@ -81,6 +81,8 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  log_student_spawned(arguments);
+
   // Wait for dean major message
   if (!sem_wait(semaphore_id, DEAN_SEMAPHORE, 0)) {
     perror("Student error. Semaphore failed");
@@ -97,8 +99,6 @@ int main(int argc, char** argv) {
     perror("Student error. Semaphore failed");
     return EXIT_FAILURE;
   }
-
-  log_student_spawned(arguments);
 
   // Exit if wrong major
   if (*k != arguments.k) {
@@ -163,7 +163,6 @@ bool attach_handler() {
 
 void signal_handler(int signal) {
   if (signal == SIGUSR1) {
-    logger(STUDENT_PREFIX, "Evacuation\n");
     exit(EXIT_SUCCESS);
   }
 }

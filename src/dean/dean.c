@@ -69,6 +69,8 @@ int main(int argc, char** argv) {
 
   log_dean_spawned(arguments);
 
+  sleep(rand() % 10 + 1);
+
   *k = rand() % arguments.k;
 
   if (!sem_post(semaphore_id, DEAN_SEMAPHORE, 0)) {

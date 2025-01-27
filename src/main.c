@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <math.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -19,6 +20,10 @@
 
 volatile pid_t dean = -1;
 
+int all_students = 0;
+pid_t* pgid;
+int semaphore_id;
+
 int main(int argc, char** argv) {
   // Command line arguments
   struct MainArguments arguments = initial_main();
@@ -26,15 +31,11 @@ int main(int argc, char** argv) {
   // Children pid's
   pid_t boards[] = {-1, -1};
 
-  // Semaphores
-  int semaphore_id;
-
   // Shared memory
   int pgid_shmid;
-  pid_t* pgid;
 
-  int all_students = 0;
-  int student_count = 0;
+  // Thread
+  pthread_t waiter;
 
   srand(getpid());
 
@@ -111,10 +112,25 @@ int main(int argc, char** argv) {
   }
 
   *pgid = 0;
-  sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+  if (!sem_post(semaphore_id, PGID_SEMAPHORE, 0)) {
+    perror("Main error. Semaphore failed");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
+  }
 
   if (!log_main_spawned(arguments)) {
     perror("Main error. Failed to log program state");
+  }
+
+  for (ssize_t i = 0; i < arguments.ns_len; i++)
+    all_students += arguments.ns[i];
+
+  if (pthread_create(&waiter, NULL, student_waiter, NULL) == 0) {
+    perror("Main error. Cannot create a thread");
+    cleanup(&arguments);
+
+    return EXIT_FAILURE;
   }
 
   // Spawning children
@@ -139,30 +155,17 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  for (ssize_t i = 0; i < arguments.ns_len; i++)
-    all_students += arguments.ns[i];
+  if (pthread_join(waiter, NULL) ==) {
+    perror("Main error. Cannot join thread");
+    cleanup(&arguments);
 
-  // Getting student's process group
-  while (1) {
-    sem_wait(semaphore_id, PGID_SEMAPHORE, 0);
-    if (*pgid != 0) {
-      sem_post(semaphore_id, PGID_SEMAPHORE, 0);
-      break;
-    }
-    sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+    return EXIT_FAILURE;
   }
-
-  while (student_count < all_students) {
-    if (waitpid(-(*pgid), NULL, 0) > 0) student_count++;
-  }
-
-  sem_post(semaphore_id, END_SEMAPHORE, 0);
 
   while (waitpid(boards[0], NULL, 0) > 0) {
   }
   while (waitpid(boards[1], NULL, 0) > 0) {
   }
-
   while (waitpid(dean, NULL, 0) > 0) {
   }
 
@@ -281,6 +284,8 @@ bool students_runner(int k, int* ns, int t) {
           exit(EXIT_FAILURE);
         }
       }
+
+      usleep(rand() % 500000 + 100000);
     }
   }
 
@@ -343,4 +348,32 @@ char* int_arr_to_str(int* xs, ssize_t n) {
   str[str_size - 1] = '\0';
 
   return str;
+}
+
+void* student_waiter() {
+  int student_count = 0;
+  printf("Hello from thread\n");
+
+  while (1) {
+    if (!sem_wait(semaphore_id, PGID_SEMAPHORE, 0)) {
+      perror("Main error. Semaphore failure");
+    }
+
+    if (*pgid != 0) {
+      sem_post(semaphore_id, PGID_SEMAPHORE, 0);
+      break;
+    }
+
+    if (!sem_post(semaphore_id, PGID_SEMAPHORE, 0)) {
+      perror("Main error. Semaphore failure");
+    }
+  }
+
+  while (student_count < all_students) {
+    if (wait(NULL) > 0) student_count++;
+  }
+
+  sem_post(semaphore_id, END_SEMAPHORE, 0);
+
+  return NULL;
 }

@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE
-PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic -D_POSIX_C_SOURCE
+CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE
+PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE
 FMT=clang-format
 
 OBJDIR=./obj
@@ -20,7 +20,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/**/%.c
 	$(CC) -c -o $@ $< $(PROD_CFLAGS)
 
 main: $(OBJDIR)/main.o $(OBJ_FILES)
-	$(CC) -o $(BINDIR)/$@ $^ $(PROD_CFLAGS) -lm
+	$(CC) -o $(BINDIR)/$@ $^ $(PROD_CFLAGS) -lm -pthread
 
 student: $(OBJDIR)/student.o $(OBJ_FILES)
 	$(CC) -o $(BINDIR)/$@ $^ $(PROD_CFLAGS)
