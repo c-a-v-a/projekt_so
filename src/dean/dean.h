@@ -1,17 +1,31 @@
+/**
+ * @file dean.h
+ * @author Filip Cebula
+ * @date 27 Jan 2025
+ * @brief Module that contains dean process.
+ *
+ * The process's role is to select a random faculty that should take the exam,
+ * recieve grades from two board processes, and save the grades to a file.
+ */
+
 #ifndef DEAN_H
 #define DEAN_H
 
 #include <stdbool.h>
 #include <sys/types.h>
 
-static const float GRADES[] = {2.0, 3.0, 3.5, 4.0, 4.5, 5.0};
-static const ssize_t GRADES_LEN = 6;
-
 int main(int argc, char** argv);
 
+/**
+ * @brief Attaches the `signal_handler` function to the SIGUSR1.
+ * @see signal_handler
+ * @return Whether the action failed or succeeded.
+ */
 bool attach_handler();
-void signal_handler(int signal);
 
-float get_average(float x, float y);
+/**
+ * @brief Sends SIGUSR1 signal to every student process.
+ */
+void signal_handler(int signal);
 
 #endif

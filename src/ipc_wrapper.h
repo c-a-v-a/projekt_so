@@ -93,12 +93,12 @@ static const size_t MESSAGE_QUEUE_FILES_SIZE = 2;
 /**
  * Types of message queue messages.
  */
-static const long MESSAGE_ASK = 1;
-static const long MESSAGE_QUESTIONS = 2;
-static const long MESSAGE_ANSWERS = 3;
-static const long MESSAGE_GRADE = 4;
-static const long MESSAGE_RETAKER = 5;
-static const long MESSAGE_SEND_TO_DEAN = 6;
+#define MESSAGE_ASK 1
+#define MESSAGE_QUESTIONS 2
+#define MESSAGE_ANSWERS 3
+#define MESSAGE_GRADE 4
+#define MESSAGE_RETAKER 5
+#define MESSAGE_SEND_TO_DEAN 6
 
 /**
  * Type for the messages that will be send over the message queue.
@@ -146,7 +146,7 @@ bool remove_all_semaphores();
 /**
  * Get id of the semaphore file.
  *
- * @return Semaphore file id od -1 if error occured.
+ * @return Semaphore file id or -1 if error occured.
  */
 int get_semid();
 

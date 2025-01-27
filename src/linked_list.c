@@ -12,7 +12,7 @@ void linked_list_add(struct Node** head, int k, int n, float grade_a, float grad
   new->n = n;
   new->grade_a = grade_a;
   new->grade_b = grade_b;
-  new->next == NULL;
+  new->next = NULL;
 
   if (*head == NULL) {
     *head = new;

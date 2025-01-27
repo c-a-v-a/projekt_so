@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/msg.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "../cli_parser.h"
+#include "../grades.h"
 #include "../ipc_wrapper.h"
 #include "../linked_list.h"
 #include "../logger.h"
@@ -17,38 +17,59 @@
 pthread_mutex_t board_member_mutex;
 
 int main(int argc, char** argv) {
-  struct BoardArguments args = initial_board();
+  struct BoardArguments arguments = initial_board();
+
+  // Threads
   pthread_t t1, t2, t3;
-  int msgqid;
-  int semaphore_id = get_semid();
+  int result = 0;
+
+  // Message queue
   struct Message message;
+  int msgqid;
+  
+  // Semaphores
+  int semaphore_id = get_semid();
+
+  // Linked list
   struct Node* head = NULL;
+  struct Node* curr;
 
   setpgid(0, 0);
   srand(getpid());
 
-  if (!parse_board(argc, argv, &args)) {
+  if (!parse_board(argc, argv, &arguments)) {
     perror("Board error. Failed to parse arguments");
     return EXIT_FAILURE;
   }
 
-  if (!validate_board(args)) {
+  if (!validate_board(arguments)) {
     errno = EINVAL;
     perror("Board error. Failed to validate arguments");
     return EXIT_FAILURE;
   }
 
-  if (!log_board_spawned(args)) {
-    perror("Board error. Failed to log program state");
+  if (semaphore_id == -1) {
+    perror("Board error. Failed to connect to semaphores");
+    return EXIT_FAILURE;
   }
 
-  if (args.board_name == 'A') {
+  if (arguments.board_name == 'A') {
     msgqid = get_board_a_msgqid();
   } else {
     msgqid = get_board_b_msgqid();
   }
 
-  pthread_mutex_init(&board_member_mutex, NULL);
+  if (msgqid == -1) {
+    perror("Board error. Failed to connect to message queue");
+    return EXIT_FAILURE;
+  }
+
+  if (pthread_mutex_init(&board_member_mutex, NULL) != 0) {
+    perror("Board error. Failed to initialize mutex");
+    return EXIT_FAILURE;
+  }
+
+  log_board_spawned(arguments);
 
   while (1) {
     if (sem_wait(semaphore_id, END_SEMAPHORE, IPC_NOWAIT)) {
@@ -57,7 +78,11 @@ int main(int argc, char** argv) {
     }
 
     if (msgrcv(msgqid, &message, MESSAGE_SIZE, 0, IPC_NOWAIT) == -1) {
-      continue;
+      if (errno == ENOMSG) continue;
+      else {
+        perror("Board error. Failed to recieve messages from message queue");
+        return EXIT_FAILURE;
+      }
     }
 
     switch(message.mtype) {
@@ -67,15 +92,28 @@ int main(int argc, char** argv) {
         message.slot2 = -1.;
         message.slot3 = -1.;
 
-        pthread_create(&t1, NULL, prepare_questions, (void*)&message);
-        pthread_create(&t2, NULL, prepare_questions, (void*)&message);
-        pthread_create(&t3, NULL, prepare_questions, (void*)&message);
+        result += pthread_create(&t1, NULL, prepare_questions, (void*)&message);
+        result += pthread_create(&t2, NULL, prepare_questions, (void*)&message);
+        result += pthread_create(&t3, NULL, prepare_questions, (void*)&message);
 
-        pthread_join(t1, NULL);
-        pthread_join(t2, NULL);
-        pthread_join(t3, NULL);
+        if (result != 0) {
+          perror("Board error. Failed to create threads");
+          return EXIT_FAILURE;
+        }
 
-        msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+        result += pthread_join(t1, NULL);
+        result += pthread_join(t2, NULL);
+        result += pthread_join(t3, NULL);
+
+        if (result != 0) {
+          perror("Board error. Failed to join threads");
+          return EXIT_FAILURE;
+        }
+
+        if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
+          perror("Board error. Failed to send message");
+          return EXIT_FAILURE;
+        }
 
         break;
       case MESSAGE_ANSWERS:
@@ -84,15 +122,28 @@ int main(int argc, char** argv) {
         message.slot2 = -1.;
         message.slot3 = -1.;
 
-        pthread_create(&t1, NULL, grade, (void*)&message);
-        pthread_create(&t2, NULL, grade, (void*)&message);
-        pthread_create(&t3, NULL, grade, (void*)&message);
+        result += pthread_create(&t1, NULL, grade, (void*)&message);
+        result += pthread_create(&t2, NULL, grade, (void*)&message);
+        result += pthread_create(&t3, NULL, grade, (void*)&message);
 
-        pthread_join(t1, NULL);
-        pthread_join(t2, NULL);
-        pthread_join(t3, NULL);
+        if (result != 0) {
+          perror("Board error. Failed to create threads");
+          return EXIT_FAILURE;
+        }
 
-        msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+        result += pthread_join(t1, NULL);
+        result += pthread_join(t2, NULL);
+        result += pthread_join(t3, NULL);
+
+        if (result != 0) {
+          perror("Board error. Failed to join threads");
+          return EXIT_FAILURE;
+        }
+
+        if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
+          perror("Board error. Failed to send message");
+          return EXIT_FAILURE;
+        }
 
         break;
       case MESSAGE_RETAKER:
@@ -102,24 +153,31 @@ int main(int argc, char** argv) {
       default:
         errno = EINVAL;
         perror("Board error. Bad message type");
-        break;
+        return EXIT_FAILURE;
     }
   }
   
-  struct Node* curr = head;
+  curr = head;
   while (curr != NULL) {
     message.mtype = MESSAGE_SEND_TO_DEAN;
     message.slot1 = (float)curr->k;
     message.slot2 = (float)curr->n;
     message.slot3 = curr->grade_a;
-    msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
+    if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
+      perror("Board error. Failed to send message");
+      return EXIT_FAILURE;
+    }
 
     curr = curr->next;
   }
 
   message.mtype = MESSAGE_SEND_TO_DEAN;
   message.slot1 = -1.;
-  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+  if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
+    perror("Board error. Failed to send message");
+    return EXIT_FAILURE;
+  }
 
   linked_list_free(head);
 
@@ -168,29 +226,4 @@ void* grade(void* arg) {
   pthread_mutex_unlock(&board_member_mutex);
 
   return NULL;
-}
-
-float get_random_grade() {
-  float grade = -1;
-  int probability = rand() % 100 + 1;
-  int i = 0;
-
-  for (; i < GRADES_LEN; i++) {
-    probability -= GRADES_PROBABILITY[i];
-    grade = GRADES[i];
-
-    if (probability <= 0) break;
-  }
-  
-  return grade;
-}
-
-float get_average(float x, float y, float z) {
-  float avg = (x + y + z) / 3;
-
-  for (int i = 0; i < GRADES_LEN; i++) {
-    if (GRADES[i] >= avg) return GRADES[i];
-  }
-
-  return -1;
 }

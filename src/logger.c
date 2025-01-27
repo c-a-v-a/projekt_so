@@ -10,7 +10,6 @@ bool logger(const char* prefix, char* format, ...) {
   va_list arguments;
   bool result = true;
 
-
   va_start(arguments, format);
   result = result && printf("%s", prefix);
   result = result && vprintf(format, arguments) >= 0;
@@ -37,9 +36,8 @@ bool log_dean_spawned(struct DeanArguments arguments) {
 bool log_main_spawned(struct MainArguments arguments) {
   bool result = true;
 
-  result =
-      result && logger(MAIN_PREFIX, "Spawned main\tK:%d T:%d NS:", arguments.k,
-                       arguments.t);
+  result = logger(MAIN_PREFIX, "Spawned main\tK:%d T:%d NS:", arguments.k,
+    arguments.t);
 
   for (ssize_t i = 0; i < arguments.ns_len; i++) {
     result = result && logger(MAIN_PREFIX, "%d ", arguments.ns[i]);
@@ -51,6 +49,6 @@ bool log_main_spawned(struct MainArguments arguments) {
 }
 
 bool log_student_spawned(struct StudentArguments arguments) {
-  return logger(STUDENT_PREFIX, "Spawned student\tK:%d N:%d T:%d\n",
-                arguments.k, arguments.n, arguments.t);
+  return logger(STUDENT_PREFIX, "Spawned student[%d,%d]\n",
+                arguments.k, arguments.n);
 }
