@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
   // Message queue
   struct Message message;
   int msgqid;
-  
+
   // Semaphores
   int semaphore_id = get_semid();
 
@@ -78,14 +78,15 @@ int main(int argc, char** argv) {
     }
 
     if (msgrcv(msgqid, &message, MESSAGE_SIZE, 0, IPC_NOWAIT) == -1) {
-      if (errno == ENOMSG) continue;
+      if (errno == ENOMSG)
+        continue;
       else {
         perror("Board error. Failed to recieve messages from message queue");
         return EXIT_FAILURE;
       }
     }
 
-    switch(message.mtype) {
+    switch (message.mtype) {
       case MESSAGE_ASK:
         message.mtype = MESSAGE_QUESTIONS;
         message.slot1 = -1.;
@@ -147,7 +148,8 @@ int main(int argc, char** argv) {
 
         break;
       case MESSAGE_RETAKER:
-        linked_list_add(&head, (int)message.slot1, (int)message.slot2, message.slot3, -1.);
+        linked_list_add(&head, (int)message.slot1, (int)message.slot2,
+                        message.slot3, -1.);
 
         break;
       default:
@@ -156,7 +158,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
   }
-  
+
   curr = head;
   while (curr != NULL) {
     message.mtype = MESSAGE_SEND_TO_DEAN;
@@ -219,7 +221,8 @@ void* grade(void* arg) {
     if (message->slot1 < 3 || message->slot2 < 3 || message->slot3 < 3) {
       message->total = 2.;
     } else {
-      message->total = get_average(message->slot1, message->slot2, message->slot3);
+      message->total =
+          get_average(message->slot1, message->slot2, message->slot3);
     }
   }
 

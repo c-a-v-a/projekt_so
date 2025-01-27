@@ -47,7 +47,7 @@ void signal_handler(int signal);
  * student.
  */
 float board_action(int semid, int sem_room, int sem, int msgqid,
-    const char* prefix, bool retaker, struct StudentArguments args,
-    float grade, char board_name);
+                   const char* prefix, bool retaker,
+                   struct StudentArguments args, float grade, char board_name);
 
 #endif

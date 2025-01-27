@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE
-PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic
+PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic -D_POSIX_C_SOURCE
 FMT=clang-format
 
 OBJDIR=./obj
@@ -10,29 +10,26 @@ SRCDIR=./src
 _OBJ_FILES=logger.o cli_parser.o ipc_wrapper.o linked_list.o grades.o
 OBJ_FILES=$(patsubst %,$(OBJDIR)/%,$(_OBJ_FILES))
 
-all: main student dean board
+all: setup main student dean board
+dev_all: setup dev_main dev_student dev_dean dev_board
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c 
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(PROD_CFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/**/%.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(PROD_CFLAGS)
 
 main: $(OBJDIR)/main.o $(OBJ_FILES)
-	make setup
-	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS) -lm
+	$(CC) -o $(BINDIR)/$@ $^ $(PROD_CFLAGS) -lm
 
 student: $(OBJDIR)/student.o $(OBJ_FILES)
-	make setup
-	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS)
+	$(CC) -o $(BINDIR)/$@ $^ $(PROD_CFLAGS)
 
 dean: $(OBJDIR)/dean.o $(OBJ_FILES)
-	make setup
-	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS)
+	$(CC) -o $(BINDIR)/$@ $^ $(PROD_CFLAGS)
 
 board: $(OBJDIR)/board.o $(OBJ_FILES)
-	make setup
-	$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS) -pthread
+	$(CC) -o $(BINDIR)/$@ $^ $(PROD_CFLAGS) -pthread
 
 format:
 	$(FMT) --style=google -i $(SRCDIR)/*.*

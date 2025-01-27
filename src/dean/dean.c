@@ -79,9 +79,11 @@ int main(int argc, char** argv) {
   logger(DEAN_PREFIX, "Exam is for major %d\n", *k);
 
   // Recieve grades from board A
-  while(1) {
-    if (msgrcv(board_a, &message, MESSAGE_SIZE, MESSAGE_SEND_TO_DEAN, 0) == -1) {
-      if (errno == EINTR) continue;
+  while (1) {
+    if (msgrcv(board_a, &message, MESSAGE_SIZE, MESSAGE_SEND_TO_DEAN, 0) ==
+        -1) {
+      if (errno == EINTR)
+        continue;
       else {
         perror("Dean error. Could not recieve a message from message queue");
         return EXIT_FAILURE;
@@ -90,17 +92,20 @@ int main(int argc, char** argv) {
 
     if (message.slot1 < 0) break;
 
-    linked_list_add(&head, (int)message.slot1, (int)message.slot2, message.slot3, -1);
+    linked_list_add(&head, (int)message.slot1, (int)message.slot2,
+                    message.slot3, -1);
   }
 
   // Recieve grades from board B
   while (1) {
-    if (msgrcv(board_b, &message, MESSAGE_SIZE, MESSAGE_SEND_TO_DEAN, 0) == -1) {
-      if (errno == EINTR) continue;
+    if (msgrcv(board_b, &message, MESSAGE_SIZE, MESSAGE_SEND_TO_DEAN, 0) ==
+        -1) {
+      if (errno == EINTR)
+        continue;
       else {
         perror("Dean error. Could not recieve a message from message queue");
         return EXIT_FAILURE;
-      } 
+      }
     }
 
     if (message.slot1 < 0) break;
@@ -121,25 +126,27 @@ int main(int argc, char** argv) {
   logger(DEAN_PREFIX, "\nGRADES\n");
 
   if (grades_file != NULL) fprintf(grades_file, "GRADES\n");
-  
+
   struct Node* curr = head;
   while (curr != NULL) {
     if (curr->grade_b < 0) {
       logger(DEAN_PREFIX, "Student[%d,%d] A: %.1f B: NA Final grade: NA\n",
-        curr->k, curr->n, curr->grade_a);
+             curr->k, curr->n, curr->grade_a);
 
       if (grades_file == NULL) continue;
 
       fprintf(grades_file, "Student[%d,%d] A: %.1f B: NA Final grade: NA\n",
-        curr->k, curr->n, curr->grade_a);
+              curr->k, curr->n, curr->grade_a);
     } else {
       logger(DEAN_PREFIX, "Student[%d,%d] A: %.1f B: %.1f Final grade: %.1f\n",
-        curr->k, curr->n, curr->grade_a, curr->grade_b, get_final_grade(curr->grade_a, curr->grade_b));
+             curr->k, curr->n, curr->grade_a, curr->grade_b,
+             get_final_grade(curr->grade_a, curr->grade_b));
 
       if (grades_file == NULL) continue;
 
       fprintf(grades_file, "Student[%d,%d] A: %.1f B: %.1f Final grade: %.1f\n",
-        curr->k, curr->n, curr->grade_a, curr->grade_b, get_final_grade(curr->grade_a, curr->grade_b));
+              curr->k, curr->n, curr->grade_a, curr->grade_b,
+              get_final_grade(curr->grade_a, curr->grade_b));
     }
 
     curr = curr->next;
@@ -170,4 +177,3 @@ void signal_handler(int signal) {
     kill(-(*pgid), SIGUSR1);
   }
 }
-

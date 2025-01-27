@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
 
     return EXIT_FAILURE;
   }
-  
+
   for (ssize_t i = 0; i < arguments.ns_len; i++)
     all_students += arguments.ns[i];
 
@@ -158,10 +158,13 @@ int main(int argc, char** argv) {
 
   sem_post(semaphore_id, END_SEMAPHORE, 0);
 
-  while (waitpid(boards[0], NULL, 0) > 0) {}
-  while (waitpid(boards[1], NULL, 0) > 0) {}
+  while (waitpid(boards[0], NULL, 0) > 0) {
+  }
+  while (waitpid(boards[1], NULL, 0) > 0) {
+  }
 
-  while (waitpid(dean, NULL, 0) > 0) {}
+  while (waitpid(dean, NULL, 0) > 0) {
+  }
 
   if (shmdt(pgid) == -1) {
     perror("Main error. Failed to detach shared memory");
@@ -219,7 +222,7 @@ bool dean_runner(int k, volatile pid_t* dean) {
 }
 
 bool board_runner(pid_t* boards) {
-  for (size_t i = 0; i < BOARDS_LENGTH; i++) {
+  for (ssize_t i = 0; i < BOARDS_LENGTH; i++) {
     const pid_t pid = fork();
 
     if (pid == -1) {

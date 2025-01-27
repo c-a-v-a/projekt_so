@@ -12,10 +12,10 @@
  * @brief Structure representing a node in a linked list.
  */
 struct Node {
-  int k; /**< Student's major. */
-  int n; /**< Student's number. */
-  float grade_a; /**< Grade from board a. */
-  float grade_b; /**< Grade from board b. */
+  int k;             /**< Student's major. */
+  int n;             /**< Student's number. */
+  float grade_a;     /**< Grade from board a. */
+  float grade_b;     /**< Grade from board b. */
   struct Node* next; /**< Pointer to the next element on the list. */
 };
 
@@ -28,7 +28,8 @@ struct Node {
  * @param grade_a Grade from board a.
  * @param grade_b Grade from board b.
  */
-void linked_list_add(struct Node** head, int k, int n, float grade_a, float grade_b);
+void linked_list_add(struct Node** head, int k, int n, float grade_a,
+                     float grade_b);
 
 /**
  * @brief Frees the liked list structure.

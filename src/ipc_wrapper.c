@@ -40,11 +40,13 @@ bool create_all_semaphores() {
     return false;
   }
 
-  if (semctl(semid, BOARD_ROOM_A_SEMAPHORE, SETVAL, BOARD_ROOM_A_SEMAPHORE_VALUE) == -1) {
+  if (semctl(semid, BOARD_ROOM_A_SEMAPHORE, SETVAL,
+             BOARD_ROOM_A_SEMAPHORE_VALUE) == -1) {
     return false;
   }
 
-  if (semctl(semid, BOARD_ROOM_B_SEMAPHORE, SETVAL, BOARD_ROOM_B_SEMAPHORE_VALUE) == -1) {
+  if (semctl(semid, BOARD_ROOM_B_SEMAPHORE, SETVAL,
+             BOARD_ROOM_B_SEMAPHORE_VALUE) == -1) {
     return false;
   }
 

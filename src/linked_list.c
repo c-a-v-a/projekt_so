@@ -1,13 +1,14 @@
 #include "linked_list.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-void linked_list_add(struct Node** head, int k, int n, float grade_a, float grade_b) {
+void linked_list_add(struct Node** head, int k, int n, float grade_a,
+                     float grade_b) {
   struct Node* new = malloc(sizeof(struct Node));
 
   if (new == NULL) return;
-  
+
   new->k = k;
   new->n = n;
   new->grade_a = grade_a;

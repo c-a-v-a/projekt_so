@@ -37,7 +37,7 @@ bool log_main_spawned(struct MainArguments arguments) {
   bool result = true;
 
   result = logger(MAIN_PREFIX, "Spawned main\tK:%d T:%d NS:", arguments.k,
-    arguments.t);
+                  arguments.t);
 
   for (ssize_t i = 0; i < arguments.ns_len; i++) {
     result = result && logger(MAIN_PREFIX, "%d ", arguments.ns[i]);
@@ -49,6 +49,6 @@ bool log_main_spawned(struct MainArguments arguments) {
 }
 
 bool log_student_spawned(struct StudentArguments arguments) {
-  return logger(STUDENT_PREFIX, "Spawned student[%d,%d]\n",
-                arguments.k, arguments.n);
+  return logger(STUDENT_PREFIX, "Spawned student[%d,%d]\n", arguments.k,
+                arguments.n);
 }

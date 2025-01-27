@@ -13,7 +13,7 @@ float get_random_grade() {
 
     if (probability <= 0) break;
   }
-  
+
   return grade;
 }
 

@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
   if (*k != arguments.k) {
     shmdt(k);
     logger(STUDENT_PREFIX, "Student[%d,%d] exits. Wrong major\n", arguments.k,
-        arguments.n);
+           arguments.n);
     exit(EXIT_SUCCESS);
   }
   shmdt(k);
@@ -115,14 +115,15 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  result = board_action(semaphore_id, BOARD_ROOM_A_SEMAPHORE, BOARD_A_SEMAPHORE,
-      msgqid, BOARD_ROOM_A_PREFIX, retaker, arguments, grade, 'A');
+  result =
+      board_action(semaphore_id, BOARD_ROOM_A_SEMAPHORE, BOARD_A_SEMAPHORE,
+                   msgqid, BOARD_ROOM_A_PREFIX, retaker, arguments, grade, 'A');
 
   if (result < 0) {
     return EXIT_FAILURE;
   } else if (result < 3) {
     logger(STUDENT_PREFIX, "Student[%d,%d] finished exam (didn't pass)\n",
-        arguments.k, arguments.n);
+           arguments.k, arguments.n);
 
     return EXIT_SUCCESS;
   }
@@ -134,13 +135,13 @@ int main(int argc, char** argv) {
   }
 
   result = board_action(semaphore_id, BOARD_ROOM_B_SEMAPHORE, BOARD_B_SEMAPHORE,
-      msgqid, BOARD_ROOM_B_PREFIX, false, arguments, -1, 'B');
+                        msgqid, BOARD_ROOM_B_PREFIX, false, arguments, -1, 'B');
 
   if (result < 0) {
     return EXIT_FAILURE;
   } else if (result < 3) {
     logger(STUDENT_PREFIX, "Student[%d,%d] finished exam (didn't pass)\n",
-        arguments.k, arguments.n);
+           arguments.k, arguments.n);
 
     return EXIT_SUCCESS;
   }
@@ -167,9 +168,9 @@ void signal_handler(int signal) {
   }
 }
 
-float board_action(int semid, int sem_room, int sem, int msgqid, 
-  const char* prefix, bool retaker, struct StudentArguments args, 
-  float grade, char board_name) {
+float board_action(int semid, int sem_room, int sem, int msgqid,
+                   const char* prefix, bool retaker,
+                   struct StudentArguments args, float grade, char board_name) {
   struct Message message;
 
   // Go in the board room
@@ -179,14 +180,14 @@ float board_action(int semid, int sem_room, int sem, int msgqid,
   }
 
   logger(prefix, "Student[%d,%d] entered board %c room\n", args.k, args.n,
-      board_name);
+         board_name);
 
   // Go in front of the board
   if (!sem_wait(semid, sem, 0)) {
     perror("Student error. Semaphore failed");
     return -1.;
   }
-  
+
   if (retaker) {
     // Confirm grade
     message.slot1 = args.k;
@@ -198,8 +199,8 @@ float board_action(int semid, int sem_room, int sem, int msgqid,
       return -1.;
     }
 
-    logger(prefix,"Student[%d,%d] retakes the exam with grade %.1f\n",
-        args.k, args.n, grade);
+    logger(prefix, "Student[%d,%d] retakes the exam with grade %.1f\n", args.k,
+           args.n, grade);
 
     if (!sem_post(semid, sem, 0)) {
       perror("Student error. Semaphore failed");
@@ -225,8 +226,8 @@ float board_action(int semid, int sem_room, int sem, int msgqid,
       return -1;
     }
 
-    logger(prefix, "Student[%d,%d] recieved questions %.1f,%.1f,%.1f\n",
-        args.k, args.n, message.slot1, message.slot2, message.slot3);
+    logger(prefix, "Student[%d,%d] recieved questions %.1f,%.1f,%.1f\n", args.k,
+           args.n, message.slot1, message.slot2, message.slot3);
 
     // Go back
     if (!sem_post(semid, sem, 0)) {
@@ -257,8 +258,8 @@ float board_action(int semid, int sem_room, int sem, int msgqid,
     }
 
     logger(prefix, "Student[%d,%d] recieved grades %.1f,%.1f,%.1f total %.1f\n",
-        args.k, args.n, message.slot1, message.slot2, message.slot3,
-        message.total);
+           args.k, args.n, message.slot1, message.slot2, message.slot3,
+           message.total);
 
     message.slot1 = args.k;
     message.slot2 = args.n;

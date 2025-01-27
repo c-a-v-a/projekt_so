@@ -4,7 +4,7 @@
  * @date 27 Jan 2025
  * @brief Module that contains the board process.
  *
- * The process's role is to give questions to students and grade them. The 
+ * The process's role is to give questions to students and grade them. The
  * grades are then stored in linked list and sent to the dean process. The
  * board process consists of three members, that are represented as a threads.
  */
@@ -28,15 +28,15 @@ void* prepare_questions(void* arg);
 
 /**
  * @brief Generates a random grades for student.
- * 
- * Three randomly generated grades (each with a certain probability) are 
+ *
+ * Three randomly generated grades (each with a certain probability) are
  * assigned for every question, and then the average is taken from all of those
  * grades to determine the final grade. If even one grade is 2.0, the student
  * automatically fails, and the total grade is set to 2.0.
  * @param arg The actual parameter is of type `struct Message` from the
  * `ipc_wrapper` module.
  * @return Function changes `slot1`, `slot2`, `slot3` and `total` fields of the
- * argument, and sets them to random grade (from the `grades` module) or an 
+ * argument, and sets them to random grade (from the `grades` module) or an
  * average (from the `grades` module as well).
  *
  * @see GRADES
