@@ -31,7 +31,7 @@ void cleanup(struct MainArguments* arguments);
  * @param dean Pointer for pid of dean process. It is changed by this function.
  * @return Whether operation failed or succeeded.
  */
-bool dean_runner(int k, pid_t* dean);
+bool dean_runner(int k, volatile pid_t* dean);
 
 /**
  * @brief Creates two board processes.
@@ -41,7 +41,7 @@ bool dean_runner(int k, pid_t* dean);
  * @param boards Array of length 2, that stores the pids of board processes.
  * @return Whether operation failed or succeeded.
  */
-bool board_runner(int* ns, ssize_t ns_len, pid_t* boards);
+bool board_runner(pid_t* boards);
 
 /**
  * @brief Creates a student processes.

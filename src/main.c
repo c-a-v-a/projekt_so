@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (!board_runner(arguments.ns, arguments.ns_len, boards)) {
+  if (!board_runner(boards)) {
     perror("Main error. Failed to spawn board process");
     cleanup(&arguments);
 
@@ -157,16 +157,11 @@ int main(int argc, char** argv) {
   }
 
   sem_post(semaphore_id, END_SEMAPHORE, 0);
-  logger(MAIN_PREFIX, "Students finished\n");
 
   while (waitpid(boards[0], NULL, 0) > 0) {}
   while (waitpid(boards[1], NULL, 0) > 0) {}
 
-  logger(MAIN_PREFIX, "Boards finished\n");
-
   while (waitpid(dean, NULL, 0) > 0) {}
-
-  logger(MAIN_PREFIX, "Dean finished\n");
 
   if (shmdt(pgid) == -1) {
     perror("Main error. Failed to detach shared memory");
@@ -194,7 +189,7 @@ void cleanup(struct MainArguments* arguments) {
   }
 }
 
-bool dean_runner(int k, pid_t* dean) {
+bool dean_runner(int k, volatile pid_t* dean) {
   const pid_t pid = fork();
 
   if (pid == -1) {
@@ -223,7 +218,7 @@ bool dean_runner(int k, pid_t* dean) {
   return true;
 }
 
-bool board_runner(int* ns, ssize_t ns_len, pid_t* boards) {
+bool board_runner(pid_t* boards) {
   for (size_t i = 0; i < BOARDS_LENGTH; i++) {
     const pid_t pid = fork();
 
