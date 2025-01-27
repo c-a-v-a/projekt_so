@@ -63,14 +63,14 @@ int main(int argc, char** argv) {
 
   if (*k != args.k) {
     shmdt(k);
-    logger(STUDENT_PREFIX, "Student (%d,%d) exits. Wrong faculty\n", args.k, args.n);
+    logger(STUDENT_PREFIX, "Student[%d,%d] exits. Wrong faculty\n", args.k, args.n);
     exit(EXIT_SUCCESS);
   }
 
   // BOARD A
   sem_wait(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
 
-  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board A room\n", args.k, args.n, retaker);
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] entered board A room\n", args.k, args.n, retaker);
 
   sem_wait(semaphore_id, BOARD_A_SEMAPHORE, 0);
   msgqid = get_board_a_msgqid();
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
 
     msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_QUESTIONS, 0);
-    logger(BOARD_ROOM_PREFIX, "Student (%d,%d) recieved questions %.1f,%.1f,%.1f\n",
+    logger(BOARD_ROOM_PREFIX, "Student[%d,%d] recieved questions %.1f,%.1f,%.1f\n",
         args.k, args.n, message.slot1, message.slot2, message.slot3);
 
     sem_post(semaphore_id, BOARD_A_SEMAPHORE, 0);
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
 
     msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
-    logger(BOARD_ROOM_PREFIX, "Student (%d,%d) recieved grades %.1f,%.1f,%.1f total %.1f\n",
+    logger(BOARD_ROOM_PREFIX, "Student[%d,%d] recieved grades %.1f,%.1f,%.1f total %.1f\n",
         args.k, args.n, message.slot1, message.slot2, message.slot3, message.total);
 
     message.slot1 = args.k;
@@ -110,32 +110,62 @@ int main(int argc, char** argv) {
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
   }
 
-  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) got grade\n", args.k, args.n);
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] got grade\n", args.k, args.n);
   sem_post(semaphore_id, BOARD_A_SEMAPHORE, 0);
 
-  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) left board A room\n", args.k, args.n);
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] left board A room\n", args.k, args.n);
   sem_post(semaphore_id, BOARD_ROOM_A_SEMAPHORE, 0);
 
+  if (message.total < 3) {
+    logger(STUDENT_PREFIX, "Student[%d,%d] finished exam (didn't pass)\n", args.k, args.n);
+    return EXIT_SUCCESS;
+  }
+
   // BOARD B
-  /*
   sem_wait(semaphore_id, BOARD_ROOM_B_SEMAPHORE, 0);
-  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) entered board B room\n", args.k, args.n);
-  sleep(rand() % 10);
-  logger(BOARD_ROOM_PREFIX, "Student (%d,%d) leaved board B room\n", args.k, args.n);
+
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] entered board B room\n", args.k, args.n, retaker);
+
+  sem_wait(semaphore_id, BOARD_B_SEMAPHORE, 0);
+  msgqid = get_board_b_msgqid();
+
+  message.mtype = MESSAGE_ASK;
+  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
+  msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_QUESTIONS, 0);
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] recieved questions %d,%d,%d\n",
+      args.k, args.n, (int)message.slot1, (int)message.slot2, (int)message.slot3);
+
+  sem_post(semaphore_id, BOARD_A_SEMAPHORE, 0);
+
+  sleep(args.t);
+
+  sem_wait(semaphore_id, BOARD_A_SEMAPHORE, 0);
+
+  message.mtype = MESSAGE_ANSWERS;
+  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
+  msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] recieved grades %.1f,%.1f,%.1f total %.1f\n",
+      args.k, args.n, message.slot1, message.slot2, message.slot3, message.total);
+
+  message.slot1 = args.k;
+  message.slot2 = args.n;
+  message.slot3 = message.total;
+  message.mtype = MESSAGE_RETAKER;
+  msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] got grade\n", args.k, args.n);
+  sem_post(semaphore_id, BOARD_B_SEMAPHORE, 0);
+
+  logger(BOARD_ROOM_PREFIX, "Student[%d,%d] left board B room\n", args.k, args.n);
   sem_post(semaphore_id, BOARD_ROOM_B_SEMAPHORE, 0);
-  */
 
-  // go to board if already has one grade go to second board
-  // get questions
-  // wait
-  // send answers
-  // get grades
-  // go to board again
-  // exit
-
-  sleep(rand() % 10);
-
-  logger(STUDENT_PREFIX, "Student (%d,%d) finished exam\n", args.k, args.n);
+  if (message.total < 3) {
+    logger(STUDENT_PREFIX, "Student[%d,%d] finished exam (didn't pass)\n", args.k, args.n);
+  } else {
+    logger(STUDENT_PREFIX, "Student[%d,%d] finished exam\n", args.k, args.n);
+  }
 
   return EXIT_SUCCESS;
 }

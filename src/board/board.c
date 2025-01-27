@@ -105,15 +105,20 @@ int main(int argc, char** argv) {
         break;
     }
   }
-
   
   struct Node* curr = head;
-  while (curr != NULL && args.board_name == 'A') {
-    logger(BOARD_PREFIX, "Student %d %d %f\n", curr->k, curr->n, curr->grade_a);
+  while (curr != NULL) {
+    message.mtype = MESSAGE_SEND_TO_DEAN;
+    message.slot1 = (float)curr->k;
+    message.slot2 = (float)curr->n;
+    message.slot3 = curr->grade_a;
+    msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
     curr = curr->next;
   }
 
   message.mtype = MESSAGE_SEND_TO_DEAN;
+  message.slot1 = -1.;
   msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
 
   linked_list_free(head);
