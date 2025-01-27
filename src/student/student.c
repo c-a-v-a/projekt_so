@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
   retaker = rand() % 100 < RETAKER_PROBABILITY;
 
-  if (retaker) grade = GRADES[rand() % 6];
+  if (retaker) grade = GRADES[rand() % 5 + 1];
 
   if (!parse_student(argc, argv, &args)) {
     perror("Student error. Failed to parse arguments");
@@ -77,12 +77,15 @@ int main(int argc, char** argv) {
   struct Message message;
 
   if (retaker) {
+    message.slot1 = args.k;
+    message.slot2 = args.n;
+    message.slot3 = grade;
     message.mtype = MESSAGE_RETAKER;
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
   } else {
     message.mtype = MESSAGE_ASK;
-
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
     msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_QUESTIONS, 0);
     logger(BOARD_ROOM_PREFIX, "Student (%d,%d) recieved questions %.1f,%.1f,%.1f\n",
         args.k, args.n, message.slot1, message.slot2, message.slot3);
@@ -94,11 +97,17 @@ int main(int argc, char** argv) {
     sem_wait(semaphore_id, BOARD_A_SEMAPHORE, 0);
 
     message.mtype = MESSAGE_ANSWERS;
-
     msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
     msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_GRADE, 0);
     logger(BOARD_ROOM_PREFIX, "Student (%d,%d) recieved grades %.1f,%.1f,%.1f total %.1f\n",
         args.k, args.n, message.slot1, message.slot2, message.slot3, message.total);
+
+    message.slot1 = args.k;
+    message.slot2 = args.n;
+    message.slot3 = message.total;
+    message.mtype = MESSAGE_RETAKER;
+    msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
   }
 
   logger(BOARD_ROOM_PREFIX, "Student (%d,%d) got grade\n", args.k, args.n);

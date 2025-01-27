@@ -11,6 +11,7 @@
 
 #include "../cli_parser.h"
 #include "../ipc_wrapper.h"
+#include "../linked_list.h"
 #include "../logger.h"
 
 pthread_mutex_t board_member_mutex;
@@ -21,6 +22,7 @@ int main(int argc, char** argv) {
   int msgqid;
   int semaphore_id = get_semid();
   struct Message message;
+  struct Node* head = NULL;
 
   setpgid(0, 0);
   srand(getpid());
@@ -94,8 +96,7 @@ int main(int argc, char** argv) {
 
         break;
       case MESSAGE_RETAKER:
-        message.mtype = MESSAGE_GRADE;
-        msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+        linked_list_add(&head, (int)message.slot1, (int)message.slot2, message.slot3, -1.);
 
         break;
       default:
@@ -103,12 +104,19 @@ int main(int argc, char** argv) {
         perror("Board error. Bad message type");
         break;
     }
+  }
 
-    sleep(1);
+  
+  struct Node* curr = head;
+  while (curr != NULL && args.board_name == 'A') {
+    logger(BOARD_PREFIX, "Student %d %d %f\n", curr->k, curr->n, curr->grade_a);
+    curr = curr->next;
   }
 
   message.mtype = MESSAGE_SEND_TO_DEAN;
   msgsnd(msgqid, &message, MESSAGE_SIZE, 0);
+
+  linked_list_free(head);
 
   return EXIT_SUCCESS;
 }

@@ -7,7 +7,7 @@ OBJDIR=./obj
 BINDIR=./bin
 SRCDIR=./src
 
-_OBJ_FILES=logger.o cli_parser.o ipc_wrapper.o
+_OBJ_FILES=logger.o cli_parser.o ipc_wrapper.o linked_list.o
 OBJ_FILES=$(patsubst %,$(OBJDIR)/%,$(_OBJ_FILES))
 
 all: main student dean board

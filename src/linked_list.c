@@ -1,24 +1,26 @@
 #include "linked_list.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
-void add(struct Node* head, int k, int n, float grade_a, float grade_b) {
+void linked_list_add(struct Node** head, int k, int n, float grade_a, float grade_b) {
   struct Node* new = malloc(sizeof(struct Node));
-  struct Node* current = head;
 
-  if (new == NULL) return void;
+  if (new == NULL) return;
   
-  new.k = k;
-  new.n = n;
-  new.grade_a = grade_a;
-  new.grade_b = grade_b;
+  new->k = k;
+  new->n = n;
+  new->grade_a = grade_a;
+  new->grade_b = grade_b;
+  new->next == NULL;
 
-  if (head == NULL) {
-    head = new;
+  if (*head == NULL) {
+    *head = new;
 
-    return void;
+    return;
   }
 
+  struct Node* current = *head;
   while (current->next != NULL) {
     current = current->next;
   }
@@ -26,7 +28,7 @@ void add(struct Node* head, int k, int n, float grade_a, float grade_b) {
   current->next = new;
 }
 
-void free_list(struct Node* head) {
+void linked_list_free(struct Node* head) {
   struct Node* current = head;
   struct Node* next;
 
