@@ -19,10 +19,12 @@
 #include "logger.h"
 
 volatile pid_t dean = -1;
+volatile sig_atomic_t signalled = 0;
 
 int all_students = 0;
 pid_t* pgid;
 int semaphore_id;
+pthread_t waiter;
 
 int main(int argc, char** argv) {
   // Command line arguments
@@ -33,9 +35,6 @@ int main(int argc, char** argv) {
 
   // Shared memory
   int pgid_shmid;
-
-  // Thread
-  pthread_t waiter;
 
   srand(getpid());
 
@@ -126,7 +125,7 @@ int main(int argc, char** argv) {
   for (ssize_t i = 0; i < arguments.ns_len; i++)
     all_students += arguments.ns[i];
 
-  if (pthread_create(&waiter, NULL, student_waiter, NULL) == 0) {
+  if (pthread_create(&waiter, NULL, student_waiter, NULL) != 0) {
     perror("Main error. Cannot create a thread");
     cleanup(&arguments);
 
@@ -155,7 +154,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (pthread_join(waiter, NULL) ==) {
+  if (pthread_join(waiter, NULL) != 0) {
     perror("Main error. Cannot join thread");
     cleanup(&arguments);
 
@@ -249,10 +248,10 @@ bool board_runner(pid_t* boards) {
 }
 
 bool students_runner(int k, int* ns, int t) {
-  for (int i = 0; i < k; i++) {
+  for (int i = 0; i < k && signalled == 0; i++) {
     const int n = ns[i];
 
-    for (int j = 0; j < n; j++) {
+    for (int j = 0; j < n && signalled == 0; j++) {
       const pid_t pid = fork();
 
       if (pid == -1) {
@@ -305,8 +304,13 @@ bool attach_handler() {
 }
 
 void signal_handler(int signal) {
-  if (signal == SIGUSR1 && dean != -1) {
+  if (signal == SIGUSR1 && dean != -1 && signalled == 0) {
     kill(dean, SIGUSR1);
+    signalled = 1;
+    pthread_cancel(waiter);
+    if (!sem_post(semaphore_id, END_SEMAPHORE, 0)) {
+      perror("Main error. Semaphore failure");
+    }
   }
 }
 
@@ -373,7 +377,9 @@ void* student_waiter() {
     if (wait(NULL) > 0) student_count++;
   }
 
-  sem_post(semaphore_id, END_SEMAPHORE, 0);
+  if (!sem_post(semaphore_id, END_SEMAPHORE, 0)) {
+    perror("Main error. Semaphore failure");
+  }
 
   return NULL;
 }

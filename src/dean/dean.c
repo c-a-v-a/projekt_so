@@ -14,6 +14,8 @@
 #include "../linked_list.h"
 #include "../logger.h"
 
+volatile sig_atomic_t signalled = 0;
+
 int main(int argc, char** argv) {
   struct DeanArguments arguments = initial_dean();
   FILE* grades_file;
@@ -172,10 +174,12 @@ bool attach_handler() {
 }
 
 void signal_handler(int signal) {
-  if (signal == SIGUSR1) {
+  if (signal == SIGUSR1 && signalled == 0) {
+    signalled = 1;
     int pgid_shmid = get_pgid_shmid();
     pid_t* pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
     logger(DEAN_PREFIX, "Dean sent evacuation signal\n");
     kill(-(*pgid), SIGUSR1);
+    kill(getppid(), SIGUSR1);
   }
 }
