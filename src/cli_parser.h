@@ -1,9 +1,8 @@
 /**
  * @file cli_parser.h
- * @brief Module responsible for parsing and validating command line arguments.
- *
  * @author Filip Cebula
- * @date 22/01/2025
+ * @date 22 Jan 2025
+ * @brief Module responsible for parsing and validating command line arguments.
  */
 
 #ifndef CLI_PARSER_H
@@ -23,36 +22,36 @@ static const int DEFAULT_T = 2;
 #else
 
 /**
- * Minimum number of majors at the faculty.
+ * @brief Minimum number of majors at the faculty.
  */
 static const int DEFAULT_K = 5;
 
 /**
- * Minimum number of students on given major.
+ * @brief Minimum number of students on given major.
  */
 static const int N_RANGE_MIN = 80;
 
 /**
- * Maximum number of students on given major.
+ * @brief Maximum number of students on given major.
  */
 static const int N_RANGE_MAX = 160;
 
 /**
- * Time that student has to prepere the answer.
+ * @brief Time that student has to prepere the answer.
  */
 static const int DEFAULT_T = 5;
 
 #endif
 
 /**
- * The number and names of examination boards.
+ * @brief The number and names of examination boards.
  */
 static const char BOARDS[] = {'A', 'B'};
 static const ssize_t BOARDS_LENGTH = 2;
 
 /**
- * Structure representing all possible arguments, that can be passed to the
- * *board* process.
+ * @brief Structure representing all possible arguments, that can be passed to
+ * the `board` process.
  *
  * The values ns = NULL, ns_len = -1 or board_name = '\0' indicate, that those
  * fields were not parsed correctly, or were not passed in to the program.
@@ -73,7 +72,7 @@ struct DeanArguments {
 
 /**
  * Structure representing all possible arguments, that can be passed to the
- * *main* process.
+ * `main` process.
  *
  * The values k = -1, ns = NULL, ns_len = -1 or t = -1 indicate, that those
  * fields were not parsed correctly, or were not passed in to the program.
@@ -86,8 +85,8 @@ struct DeanArguments {
  */
 struct MainArguments {
   /**
-   * An array that holds the amount of students enrolled in given major *k* as
-   * the k-1 element.
+   * @brief An array that holds the amount of students enrolled in given major
+   * *k* as the k-1 element.
    */
   int* ns;
   ssize_t ns_len;
@@ -96,12 +95,11 @@ struct MainArguments {
 };
 
 /**
- * Structure representing all possible arguments, that can be passed to the
- * *student* process.
+ * @brief Structure representing all possible arguments, that can be passed to
+ * the `student` process.
  *
  * The values k = -1, n = -1 or t = -1 indicate, that those fields were not
  * parsed correctly, or were not passed in to the program.
- *
  * @see initial_student function for creating unparsed structure.
  * @see parse_student function for parsing command line arguments into this
  * structure.
@@ -115,7 +113,7 @@ struct StudentArguments {
 };
 
 /**
- * Creates the BoardArguemnts structure filled with values, that
+ * @biref Creates the `BoardArguemnts` structure filled with values, that
  * signify, that the structure was not parsed yet.
  *
  * @see BoardArguments structure
@@ -124,10 +122,14 @@ struct StudentArguments {
  */
 struct BoardArguments initial_board();
 
+/**
+ * @biref Creates the `BoardArguemnts` structure filled with values, that
+ * signify, that the structure was not parsed yet.
+ */
 struct DeanArguments initial_dean();
 
 /**
- * Creates the MainArguments structure filled with values, that
+ * @brief Creates the MainArguments structure filled with values, that
  * signify, that the structure was not parsed yet.
  *
  * @see MainArguments structure
@@ -137,7 +139,7 @@ struct DeanArguments initial_dean();
 struct MainArguments initial_main();
 
 /**
- * Creates the StudentArguments structure filled with values, that
+ * @brief Creates the StudentArguments structure filled with values, that
  * signify, that the structure was not parsed yet.
  *
  * @see StudentArguments structure
@@ -146,7 +148,7 @@ struct MainArguments initial_main();
 struct StudentArguments initial_student();
 
 /**
- * Parses given command line arguments into a structure.
+ * @brief Parses given command line arguments into a structure.
  *
  * @note This function sets errno value.
  * @param argc The standard argument count parameter from main.
@@ -161,17 +163,17 @@ bool parse_main(int argc, char** argv, struct MainArguments* arguments);
 bool parse_student(int argc, char** argv, struct StudentArguments* arguments);
 
 /**
- * Fills the empty (unparsed) fields of the structure to their
+ * @brief Fills the empty (unparsed) fields of the structure to their
  * default values (defined in the requirements).
  *
  * @note This function sets errno value.
- * @param THe pointer to the structure that needs to be filled.
+ * @param The pointer to the structure that needs to be filled.
  * @return Wheather the operation was succesfull or some error occured.
  */
 bool fill_main(struct MainArguments* arguments);
 
 /**
- * Checks wheather current arguments meet the requirements.
+ * @brief Checks wheather current arguments meet the requirements.
  *
  * @param The structure that needs to be validated.
  * @return Wheather the passed structure meets the requirements.

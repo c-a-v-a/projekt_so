@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  logger(DEAN_PREFIX, "Exam is for faculty %d\n", *k);
+  logger(DEAN_PREFIX, "Exam is for major %d\n", *k);
 
   // Recieve grades from board A
   while(1) {

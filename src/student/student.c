@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  // Wait for dean faculty message
+  // Wait for dean major message
   if (!sem_wait(semaphore_id, DEAN_SEMAPHORE, 0)) {
     perror("Student error. Semaphore failed");
     return EXIT_FAILURE;
@@ -100,10 +100,11 @@ int main(int argc, char** argv) {
 
   log_student_spawned(arguments);
 
-  // Exit if wrong faculty
+  // Exit if wrong major
   if (*k != arguments.k) {
     shmdt(k);
-    logger(STUDENT_PREFIX, "Student[%d,%d] exits. Wrong faculty\n", arguments.k, arguments.n);
+    logger(STUDENT_PREFIX, "Student[%d,%d] exits. Wrong major\n", arguments.k,
+        arguments.n);
     exit(EXIT_SUCCESS);
   }
   shmdt(k);
