@@ -362,7 +362,6 @@ char* int_arr_to_str(int* xs, ssize_t n) {
 
 void* student_waiter() {
   int student_count = 0;
-  printf("Hello from thread\n");
 
   while (1) {
     if (!sem_wait(semaphore_id, PGID_SEMAPHORE, 0)) {
