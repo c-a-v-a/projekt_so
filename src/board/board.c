@@ -34,7 +34,6 @@ int main(int argc, char** argv) {
   struct Node* head = NULL;
   struct Node* curr;
 
-  setpgid(0, 0);
   srand(getpid());
 
   if (!parse_board(argc, argv, &arguments)) {
@@ -45,6 +44,11 @@ int main(int argc, char** argv) {
   if (!validate_board(arguments)) {
     errno = EINVAL;
     perror("Board error. Failed to validate arguments");
+    return EXIT_FAILURE;
+  }
+
+  if (!attach_handler()) {
+    perror("Board error. Failed to attach signal handler");
     return EXIT_FAILURE;
   }
 
@@ -236,4 +240,16 @@ void* grade(void* arg) {
   pthread_mutex_unlock(&board_member_mutex);
 
   return NULL;
+}
+
+bool attach_handler() {
+  struct sigaction sa;
+
+  sa.sa_handler = SIG_IGN;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+
+  if (sigaction(SIGUSR1, &sa, NULL) == -1) return false;
+
+  return true;
 }

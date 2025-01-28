@@ -44,4 +44,11 @@ void* prepare_questions(void* arg);
  */
 void* grade(void* arg);
 
+/**
+ * @brief Attaches the `signal_handler` function to the SIGUSR1.
+ * @see signal_handler
+ * @return Whether the action failed or succeeded.
+ */
+bool attach_handler();
+
 #endif

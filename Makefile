@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE -DNOSLEEP -DVALID_MAX
-PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE -DNOSLEEP -DINVALID_MAX
+CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE
+PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE -DNOSLEEP
 FMT=clang-format
 
 OBJDIR=./obj
@@ -11,8 +11,8 @@ _OBJ_FILES=logger.o cli_parser.o ipc_wrapper.o linked_list.o grades.o
 OBJ_FILES=$(patsubst %,$(OBJDIR)/%,$(_OBJ_FILES))
 
 all: setup main student dean board
-dev_all: setup dev_main dev_student dev_dean dev_board
 
+# PROD
 $(OBJDIR)/%.o: $(SRCDIR)/%.c 
 	$(CC) -c -o $@ $< $(PROD_CFLAGS)
 

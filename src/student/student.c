@@ -20,8 +20,6 @@ int main(int argc, char** argv) {
   int semaphore_id = get_semid();
 
   // Shared memory
-  int pgid_shmid = get_pgid_shmid();
-  pid_t* pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
   int dean_shmid = get_dean_shmid();
   int* k;
 
@@ -55,29 +53,13 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (pgid_shmid == -1 || dean_shmid == -1) {
+  if (dean_shmid == -1) {
     perror("Student error. Failed to connect to shared memory");
     return EXIT_FAILURE;
   }
 
   if (semaphore_id == -1) {
     perror("Student error. Failed to connect to semaphores");
-    return EXIT_FAILURE;
-  }
-
-  // Set pid group for every student
-  if (!sem_wait(semaphore_id, PGID_SEMAPHORE, 0)) {
-    perror("Student error. Semaphore failed");
-    return EXIT_FAILURE;
-  }
-
-  if (*pgid == 0) *pgid = getpid();
-
-  setpgid(0, *pgid);
-  shmdt(pgid);
-
-  if (!sem_post(semaphore_id, PGID_SEMAPHORE, 0)) {
-    perror("Student error. Semaphore failed");
     return EXIT_FAILURE;
   }
 

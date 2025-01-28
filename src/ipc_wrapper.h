@@ -32,7 +32,7 @@ static const char SEMAPHORES_FILE[] = "./semaphores";
 /**
  * @brief Amount of semaphores in the *SEMAPHORES_FILE*.
  */
-static const int SEMAPHORES_AMOUNT = 8;
+static const int SEMAPHORES_AMOUNT = 7;
 
 /**
  * @brief Constants providing values used in constructing *sembuf* operation
@@ -48,11 +48,10 @@ static const short SEMAPHORE_FLAGS = 0;
 static const unsigned short END_SEMAPHORE = 0;
 static const unsigned short DEAN_SEMAPHORE = 1;
 static const unsigned short LOGGER_SEMAPHORE = 2;
-static const unsigned short PGID_SEMAPHORE = 3;
-static const unsigned short BOARD_ROOM_A_SEMAPHORE = 4;
-static const unsigned short BOARD_ROOM_B_SEMAPHORE = 5;
-static const unsigned short BOARD_A_SEMAPHORE = 6;
-static const unsigned short BOARD_B_SEMAPHORE = 7;
+static const unsigned short BOARD_ROOM_A_SEMAPHORE = 3;
+static const unsigned short BOARD_ROOM_B_SEMAPHORE = 4;
+static const unsigned short BOARD_A_SEMAPHORE = 5;
+static const unsigned short BOARD_B_SEMAPHORE = 6;
 
 /**
  * @brief Initial value of the semaphores.
@@ -60,7 +59,6 @@ static const unsigned short BOARD_B_SEMAPHORE = 7;
 static const unsigned short END_SEMAPHORE_VALUE = 0;
 static const unsigned short DEAN_SEMAPHORE_VALUE = 0;
 static const unsigned short LOGGER_SEMAPHORE_VALUE = 1;
-static const unsigned short PGID_SEMAPHORE_VALUE = 0;
 static const unsigned short BOARD_ROOM_A_SEMAPHORE_VALUE = 3;
 static const unsigned short BOARD_ROOM_B_SEMAPHORE_VALUE = 3;
 static const unsigned short BOARD_A_SEMAPHORE_VALUE = 1;
@@ -70,16 +68,11 @@ static const unsigned short BOARD_B_SEMAPHORE_VALUE = 1;
  * @brief Files to which shared memory will be linked to.
  */
 static const char DEAN_SHARED_MEMORY_FILE[] = "./dean_shm";
-static const char PGID_SHARED_MEMORY_FILE[] = "./pgid_shm";
-static const char SHARED_MEMORY_FILES[][11] = {"./dean_shm", "./pgid_shm"};
-static const size_t SHARED_MEMORY_FILES_SIZE = 2;
 
 /**
  * @brief Size of shared memory.
  */
 static const size_t DEAN_SHARED_MEMORY_SIZE = sizeof(int);
-static const size_t PGID_SHARED_MEMORY_SIZE = sizeof(pid_t);
-static const size_t SHARED_MEMORY_SIZES[] = {sizeof(int), sizeof(pid_t)};
 
 /**
  * @brief Files to which message queues will be linked to.
@@ -181,7 +174,6 @@ bool remove_all_shared_memory();
  * @return Shared memory id or -1 if error occured.
  */
 int get_dean_shmid();
-int get_pgid_shmid();
 
 /**
  * @brief Creates all message queues that will be used in our system. It also

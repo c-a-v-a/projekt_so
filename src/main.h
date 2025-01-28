@@ -54,8 +54,8 @@ bool board_runner(pid_t* boards);
 bool students_runner(int k, int* ns, int t);
 
 /**
- * @brief Attaches the `signal_handler` function to the SIGUSR1.
- * @see signal_handler
+ * @brief Attaches the `sigusr_handler` function to the SIGUSR1.
+ * @see sigusr_handler
  * @return Whether the action failed or succeeded.
  */
 bool attach_handler();
@@ -63,7 +63,7 @@ bool attach_handler();
 /**
  * @brief Passes the SIGUSR1 signal to dean process.
  */
-void signal_handler(int signal);
+void sigusr_handler(int signal);
 
 /**
  * @brief Integer to string conversion.

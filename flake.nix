@@ -14,7 +14,7 @@
         in
         {
           devShells.default = pkgs.mkShell {
-            buildInputs = [ pkgs.gcc pkgs.gnumake pkgs.clang-tools ];
+            buildInputs = [ pkgs.gcc pkgs.gnumake pkgs.clang-tools pkgs.zip pkgs.unzip ];
           };
         }
       );

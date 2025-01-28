@@ -19,10 +19,10 @@
 #include "logger.h"
 
 volatile pid_t dean = -1;
+
 volatile sig_atomic_t signalled = 0;
 
 int all_students = 0;
-pid_t* pgid;
 int semaphore_id;
 pthread_t waiter;
 
@@ -32,9 +32,6 @@ int main(int argc, char** argv) {
 
   // Children pid's
   pid_t boards[] = {-1, -1};
-
-  // Shared memory
-  int pgid_shmid;
 
   srand(getpid());
 
@@ -99,25 +96,6 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  // Linking shared memory
-  pgid_shmid = get_pgid_shmid();
-  pgid = (pid_t*)shmat(pgid_shmid, NULL, 0);
-
-  if (pgid_shmid == -1 || pgid == (pid_t*)-1) {
-    perror("Main error. Failed to attach to shared memory");
-    cleanup(&arguments);
-
-    return EXIT_FAILURE;
-  }
-
-  *pgid = 0;
-  if (!sem_post(semaphore_id, PGID_SEMAPHORE, 0)) {
-    perror("Main error. Semaphore failed");
-    cleanup(&arguments);
-
-    return EXIT_FAILURE;
-  }
-
   if (!log_main_spawned(arguments)) {
     perror("Main error. Failed to log program state");
   }
@@ -168,9 +146,6 @@ int main(int argc, char** argv) {
   while (waitpid(dean, NULL, 0) > 0) {
   }
 
-  if (shmdt(pgid) == -1) {
-    perror("Main error. Failed to detach shared memory");
-  }
   cleanup(&arguments);
 
   while (wait(NULL) > 0);
@@ -300,7 +275,7 @@ bool students_runner(int k, int* ns, int t) {
 bool attach_handler() {
   struct sigaction sa;
 
-  sa.sa_handler = signal_handler;
+  sa.sa_handler = sigusr_handler;
   sa.sa_flags = 0;
   sigemptyset(&sa.sa_mask);
 
@@ -309,7 +284,7 @@ bool attach_handler() {
   return true;
 }
 
-void signal_handler(int signal) {
+void sigusr_handler(int signal) {
   if (signal == SIGUSR1 && dean != -1 && signalled == 0) {
     kill(dean, SIGUSR1);
     signalled = 1;
@@ -362,21 +337,6 @@ char* int_arr_to_str(int* xs, ssize_t n) {
 
 void* student_waiter() {
   int student_count = 0;
-
-  while (1) {
-    if (!sem_wait(semaphore_id, PGID_SEMAPHORE, 0)) {
-      perror("Main error. Semaphore failure");
-    }
-
-    if (*pgid != 0) {
-      sem_post(semaphore_id, PGID_SEMAPHORE, 0);
-      break;
-    }
-
-    if (!sem_post(semaphore_id, PGID_SEMAPHORE, 0)) {
-      perror("Main error. Semaphore failure");
-    }
-  }
 
   while (student_count < all_students) {
     if (wait(NULL) > 0) student_count++;
