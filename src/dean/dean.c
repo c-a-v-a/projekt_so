@@ -179,6 +179,5 @@ void signal_handler(int signal) {
     signalled = 1;
     logger(DEAN_PREFIX, "Dean sent evacuation signal\n");
     kill(0, SIGUSR1);
-    kill(getppid(), SIGUSR1);
   }
 }
