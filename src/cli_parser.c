@@ -180,7 +180,11 @@ int* _generate_random_ns(int k, int min, int max) {
   if (ns == NULL) return ns;
 
   for (int i = 0; i < k; i++) {
-    ns[i] = rand() % (max - min) + min;
+    if (max == min) {
+      ns[i] = min;
+    } else {
+      ns[i] = rand() % (max - min) + min;
+    }
   }
 
   return ns;

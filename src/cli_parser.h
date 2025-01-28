@@ -19,6 +19,20 @@ static const int N_RANGE_MIN = 8;
 static const int N_RANGE_MAX = 16;
 static const int DEFAULT_T = 2;
 
+#elif defined(VALID_MAX)
+
+static const int DEFAULT_K = 2;
+static const int N_RANGE_MIN = 160;
+static const int N_RANGE_MAX = 160;
+static const int DEFAULT_T = 5;
+
+#elif defined(INVALID_MAX)
+
+static const int DEFAULT_K = 5;
+static const int N_RANGE_MIN = 500;
+static const int N_RANGE_MAX = 500;
+static const int DEFAULT_T = 5;
+
 #else
 
 /**

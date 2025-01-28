@@ -218,7 +218,9 @@ bool dean_runner(int k, volatile pid_t* dean) {
     *dean = pid;
   }
 
+#ifndef NOSLEEP
   sleep(1);
+#endif
 
   return true;
 }
@@ -241,7 +243,9 @@ bool board_runner(pid_t* boards) {
       boards[i] = pid;
     }
 
+#ifndef NOSLEEP
     sleep(1);
+#endif
   }
 
   return true;
@@ -284,7 +288,9 @@ bool students_runner(int k, int* ns, int t) {
         }
       }
 
+#ifndef NOSLEEP
       usleep(rand() % 500000 + 100000);
+#endif
     }
   }
 

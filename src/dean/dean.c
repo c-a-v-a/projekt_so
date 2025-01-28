@@ -71,7 +71,9 @@ int main(int argc, char** argv) {
 
   log_dean_spawned(arguments);
 
+#ifndef NOSLEEP
   sleep(rand() % 10 + 1);
+#endif
 
   *k = rand() % arguments.k;
 

@@ -97,7 +97,7 @@ static const size_t MESSAGE_QUEUE_FILES_SIZE = 2;
 #define MESSAGE_QUESTIONS 2
 #define MESSAGE_ANSWERS 3
 #define MESSAGE_GRADE 4
-#define MESSAGE_RETAKER 5
+#define MESSAGE_ACCEPT 5
 #define MESSAGE_SEND_TO_DEAN 6
 
 /**

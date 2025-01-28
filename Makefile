@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE
-PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE
+CFLAGS=-Wall -Wextra -g -std=c11 -Wpedantic -DENV_DEV -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE -DNOSLEEP -DVALID_MAX
+PROD_CFLAGS=-Wall -Wextra -O2 -std=c11 -Wpedantic -D_POSIX_C_SOURCE -D_DEFAULT_SOURCE -DNOSLEEP -DINVALID_MAX
 FMT=clang-format
 
 OBJDIR=./obj

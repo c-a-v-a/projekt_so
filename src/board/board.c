@@ -77,85 +77,92 @@ int main(int argc, char** argv) {
       break;
     }
 
-    if (msgrcv(msgqid, &message, MESSAGE_SIZE, 0, IPC_NOWAIT) == -1) {
-      if (errno == ENOMSG)
-        continue;
-      else {
+    if (msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_ASK, IPC_NOWAIT) == -1) {
+      if (errno != ENOMSG) {
         perror("Board error. Failed to recieve messages from message queue");
         return EXIT_FAILURE;
       }
+    } else {
+      message.mtype = MESSAGE_QUESTIONS;
+      message.slot1 = -1.;
+      message.slot2 = -1.;
+      message.slot3 = -1.;
+
+      result += pthread_create(&t1, NULL, prepare_questions, (void*)&message);
+      result += pthread_create(&t2, NULL, prepare_questions, (void*)&message);
+      result += pthread_create(&t3, NULL, prepare_questions, (void*)&message);
+
+      if (result != 0) {
+        perror("Board error. Failed to create threads");
+        return EXIT_FAILURE;
+      }
+
+      result += pthread_join(t1, NULL);
+      result += pthread_join(t2, NULL);
+      result += pthread_join(t3, NULL);
+
+      if (result != 0) {
+        perror("Board error. Failed to join threads");
+        return EXIT_FAILURE;
+      }
+
+      if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
+        perror("Board error. Failed to send message");
+        return EXIT_FAILURE;
+      }
+
+      continue;
     }
 
-    switch (message.mtype) {
-      case MESSAGE_ASK:
-        message.mtype = MESSAGE_QUESTIONS;
-        message.slot1 = -1.;
-        message.slot2 = -1.;
-        message.slot3 = -1.;
-
-        result += pthread_create(&t1, NULL, prepare_questions, (void*)&message);
-        result += pthread_create(&t2, NULL, prepare_questions, (void*)&message);
-        result += pthread_create(&t3, NULL, prepare_questions, (void*)&message);
-
-        if (result != 0) {
-          perror("Board error. Failed to create threads");
-          return EXIT_FAILURE;
-        }
-
-        result += pthread_join(t1, NULL);
-        result += pthread_join(t2, NULL);
-        result += pthread_join(t3, NULL);
-
-        if (result != 0) {
-          perror("Board error. Failed to join threads");
-          return EXIT_FAILURE;
-        }
-
-        if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
-          perror("Board error. Failed to send message");
-          return EXIT_FAILURE;
-        }
-
-        break;
-      case MESSAGE_ANSWERS:
-        message.mtype = MESSAGE_GRADE;
-        message.slot1 = -1.;
-        message.slot2 = -1.;
-        message.slot3 = -1.;
-
-        result += pthread_create(&t1, NULL, grade, (void*)&message);
-        result += pthread_create(&t2, NULL, grade, (void*)&message);
-        result += pthread_create(&t3, NULL, grade, (void*)&message);
-
-        if (result != 0) {
-          perror("Board error. Failed to create threads");
-          return EXIT_FAILURE;
-        }
-
-        result += pthread_join(t1, NULL);
-        result += pthread_join(t2, NULL);
-        result += pthread_join(t3, NULL);
-
-        if (result != 0) {
-          perror("Board error. Failed to join threads");
-          return EXIT_FAILURE;
-        }
-
-        if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
-          perror("Board error. Failed to send message");
-          return EXIT_FAILURE;
-        }
-
-        break;
-      case MESSAGE_RETAKER:
-        linked_list_add(&head, (int)message.slot1, (int)message.slot2,
-                        message.slot3, -1.);
-
-        break;
-      default:
-        errno = EINVAL;
-        perror("Board error. Bad message type");
+    if (msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_ANSWERS, IPC_NOWAIT) ==
+        -1) {
+      if (errno != ENOMSG) {
+        perror("Board error. Failed to recieve messages from message queue");
         return EXIT_FAILURE;
+      }
+    } else {
+      message.mtype = MESSAGE_GRADE;
+      message.slot1 = -1.;
+      message.slot2 = -1.;
+      message.slot3 = -1.;
+
+      result += pthread_create(&t1, NULL, grade, (void*)&message);
+      result += pthread_create(&t2, NULL, grade, (void*)&message);
+      result += pthread_create(&t3, NULL, grade, (void*)&message);
+
+      if (result != 0) {
+        perror("Board error. Failed to create threads");
+        return EXIT_FAILURE;
+      }
+
+      result += pthread_join(t1, NULL);
+      result += pthread_join(t2, NULL);
+      result += pthread_join(t3, NULL);
+
+      if (result != 0) {
+        perror("Board error. Failed to join threads");
+        return EXIT_FAILURE;
+      }
+
+      if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
+        perror("Board error. Failed to send message");
+        return EXIT_FAILURE;
+      }
+
+      continue;
+    }
+
+    if (msgrcv(msgqid, &message, MESSAGE_SIZE, MESSAGE_ACCEPT, IPC_NOWAIT) ==
+        -1) {
+      if (errno != ENOMSG) {
+        perror("Board error. Failed to recieve messages from message queue");
+        return EXIT_FAILURE;
+      }
+    } else {
+      linked_list_add(&head, (int)message.slot1, (int)message.slot2,
+                      message.slot3, -1.);
+
+      continue;
     }
   }
 

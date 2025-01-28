@@ -192,7 +192,7 @@ float board_action(int semid, int sem_room, int sem, int msgqid,
     message.slot1 = args.k;
     message.slot2 = args.n;
     message.slot3 = grade;
-    message.mtype = MESSAGE_RETAKER;
+    message.mtype = MESSAGE_ACCEPT;
     if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
       perror("Student error. Failed to send a message");
       return -1.;
@@ -263,7 +263,7 @@ float board_action(int semid, int sem_room, int sem, int msgqid,
     message.slot1 = args.k;
     message.slot2 = args.n;
     message.slot3 = message.total;
-    message.mtype = MESSAGE_RETAKER;
+    message.mtype = MESSAGE_ACCEPT;
     if (msgsnd(msgqid, &message, MESSAGE_SIZE, 0) == -1) {
       perror("Student error. Failed to send a message");
       return -1;
